@@ -232,8 +232,28 @@ def ej7():
   ej7b()
 
 
+def ej8Gana():
+  W = random()
+  return ((W < 1/6 or W > 5/6) and 2 * random() > 5/6) \
+    or (1/6 <= W <= 5/6 and random() + random() > 5/6)
+
+def ej8ProbGana(n):
+  exitos = 0
+  for _ in range(n):
+    if ej8Gana():
+      exitos += 1
+  return exitos / n
+
+def ej8():
+  iters = [100, 1000, 10000, 100000, 1000000]
+  results = []
+  for n in iters:
+    results.append(ej8ProbGana(n))
+  print(results)
+
+
 def main():
-  ej7()
+  ej8()
 
 if __name__ == '__main__':
   main()
