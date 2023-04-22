@@ -191,8 +191,49 @@ def ej6():
 
   print(results)
 
+
+def ej7N():
+  N = 0
+  S = 1
+  while S >= np.exp(-3):
+    S *= random()
+    N += 1
+  return N
+
+def ej7Prob(i):
+  n = 1000000
+  sum = 0
+  for _ in range(n):
+    if ej7N() == i:
+      sum += 1
+  return sum / n
+
+def ej7Esperanza(n):
+  values = [ej7N() for _ in range(n)]
+  return np.sum(values) / n
+
+def ej7a():
+  iters = [100, 1000, 10000, 100000, 1000000]
+  results = []
+
+  for n in iters:
+    results.append(ej7Esperanza(n))
+
+  print(results)
+
+def ej7b():
+  results = []
+  for i in range(7):
+    results.append(ej7Prob(i))
+  print(results)
+
+def ej7():
+  ej7a()
+  ej7b()
+
+
 def main():
-  ej6()
+  ej7()
 
 if __name__ == '__main__':
   main()
