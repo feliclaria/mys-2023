@@ -170,9 +170,29 @@ def ej5():
   ej5e(iters)
   ej5f(iters)
 
+def ej6N():
+  N = 0
+  S = 0
+  while S <= 1:
+    S += random()
+    N += 1
+  return N
+
+def ej6Esperanza(n):
+  values = [ej6N() for _ in range(n)]
+  return np.sum(values) / n
+
+def ej6():
+  iters = [100, 1000, 10000, 100000, 1000000]
+  results = []
+
+  for n in iters:
+    results.append(ej6Esperanza(n))
+
+  print(results)
 
 def main():
-  ej5()
+  ej6()
 
 if __name__ == '__main__':
   main()
