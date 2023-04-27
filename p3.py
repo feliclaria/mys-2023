@@ -3,7 +3,7 @@ from scipy.integrate import quad, dblquad
 import numpy as np
 import simulate as sim
 
-iters = [100, 1000, 10000, 100000, 1000000]
+iters = [100, 1_000, 10_000, 100_000, 1_000_000]
 
 
 def e2_roll():
@@ -34,45 +34,43 @@ def e3():
   print(f'Resultados ej. 3: {results}')
 
 
-def esCaja1(U):
-  return U < 0.40
+e4_probs = [0.40, 0.32, 0.28]
+e4_means = [3, 4, 5]
 
-def esCaja2(U):
-  return 0.40 <= U < 0.72
+def e4_is_box(U, box):
+  a = sum(e4_probs[0:box])
+  b = sum(e4_probs[0:box+1])
+  return a < U <= b
 
-def esCaja3(U):
-  return 0.72 < U
+def e4_box_roll():
+  box = 0
+  U = random()
+  while not e4_is_box(U, box):
+    box += 1
+  return box
 
-def tardaPocoDadaCaja(lambd):
-  return expovariate(lambd) <= 4
+def e4_roll(box):
+  return expovariate(1 / e4_means[box])
 
-def ej4():
-  n = 1000
-  tardanPoco = 0
-  cantidadesCajas = [0, 0, 0]
+def e4_is_success(X):
+  return X <= 4
+
+def e4():
+  n = 1_000
+  total_successes = 0
+  failures_per_box = [0, 0, 0]
 
   for _ in range(n):
-    U = random()
-    if esCaja1(U):
-      if tardaPocoDadaCaja(1/3):
-        tardanPoco += 1
-      else:
-        cantidadesCajas[0] += 1
-    elif esCaja2(U):
-      if tardaPocoDadaCaja(1/4):
-        tardanPoco += 1
-      else:
-        cantidadesCajas[1] += 1
-    elif esCaja3(U):
-      if tardaPocoDadaCaja(1/5):
-        tardanPoco += 1
-      else:
-        cantidadesCajas[2] += 1
+    box = e4_box_roll()
+    X = e4_roll(box)
+    if e4_is_success(X):
+      total_successes += 1
+    else:
+      failures_per_box[box] += 1
 
-  print(f"Prob. tarde menos de 4 mins.: {tardanPoco / n}")
-  print(f"Prob. eligió caja 1 al tardar más de 4 mins.: {cantidadesCajas[0] / (n - tardanPoco)}")
-  print(f"Prob. eligió caja 2 al tardar más de 4 mins.: {cantidadesCajas[1] / (n - tardanPoco)}")
-  print(f"Prob. eligió caja 3 al tardar más de 4 mins.: {cantidadesCajas[2] / (n - tardanPoco)}")
+  print(f"Prob. tarde menos de 4 mins.: {total_successes / n}")
+  for box in range(3):
+    print(f"Prob. eligió caja {box} habiendo tardado más de 4 mins.: {failures_per_box[box] / (n - total_successes)}")
 
 
 def e5a():
@@ -164,7 +162,7 @@ def e7a():
   print(results)
 
 def e7b():
-  n = 1000000
+  n = 1_000_000
   results = [sim.success_prob(n, e7_roll, lambda X: X == i) for i in range(7)]
   print(results)
 
@@ -188,7 +186,7 @@ def e8():
 
 
 def main():
-  e8()
+  e4()
 
 if __name__ == '__main__':
   main()
