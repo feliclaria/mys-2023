@@ -2,52 +2,37 @@ from random import random, expovariate
 import numpy as np
 from scipy.integrate import quad, dblquad
 
-def ej2Gana():
-  U = random()
-  return (U < 1/2 and random() + random() >= 1) \
-    or (U >= 1/2 and random() + random() + random() >= 1)
+iters = [100, 1000, 10000, 100000, 1000000]
 
-def ej2ProbGana(n):
-  exitos = 0
-
-  for _ in range(n):
-    if ej2Gana():
-      exitos += 1
-
-  return exitos / n
+def sim_success_prob(n, roll, is_success):
+  return sum(is_success(roll()) for _ in range(n)) / n
 
 
-def ej2():
-  iterations = [100, 1000, 10000, 100000, 1000000]
-  results = []
+def e2_roll():
+  if random() < 1/2:
+    return random() + random()
+  else:
+    return random() + random() + random()
 
-  for n in iterations:
-    results.append(ej2ProbGana(n))
+def e2_is_success(X):
+  return X >= 1
 
+def e2():
+  results = [sim_success_prob(n, e2_roll, e2_is_success) for n in iters]
   print(f'Resultados ej. 2: {results}')
 
 
-def ej3Gana():
-  U = random()
-  return (U < 1/3 and random() + random() <= 2) \
-    or (U >= 1/3 and random() + random() + random() <= 2)
+def e3_roll():
+  if random() < 1/3:
+    return random() + random()
+  else:
+    return random() + random() + random()
 
-def ej3ProbGana(n):
-  exitos = 0
+def e3_is_success(X):
+  return X <= 2
 
-  for _ in range(n):
-    if ej3Gana():
-      exitos += 1
-
-  return exitos / n
-
-def ej3():
-  iterations = [100, 1000, 10000, 100000, 1000000]
-  results = []
-
-  for n in iterations:
-    results.append(ej3ProbGana(n))
-
+def e3():
+  results = [sim_success_prob(n, e3_roll, e3_is_success) for n in iters]
   print(f'Resultados ej. 3: {results}')
 
 
@@ -92,85 +77,80 @@ def ej4():
   print(f"Prob. eligió caja 3 al tardar más de 4 mins.: {cantidadesCajas[2] / (n - tardanPoco)}")
 
 
-def monteCarlo(n, fun):
+def monte_carlo(n, fun):
   I = 0
-
   for _ in range(n):
     I += fun(random())
-
   return I / n
 
-def ej5a(iters):
-  def g(x):
-    return (1 - x**2)**(3.0/2.0)
+
+def e5a():
+  g = lambda x: (1 - x**2)**(3.0/2.0)
+  results = [monte_carlo(n,g) for n in iters]
 
   print("==== 5.a ====")
   print(f"Aprox. numérica: \t {quad(g, 0, 1)[0]}")
-  print(f"Monte Carlo: \t\t {[monteCarlo(n, g) for n in iters]}\n")
+  print(f"Monte Carlo: \t\t {results}\n")
 
-def ej5b(iters):
-  def g(x):
-    return x / (x**2 + 1)
-
-  def h(y):
-    return g(y+2)
+def e5b():
+  g = lambda x: x / (x**2 + 1)
+  h = lambda y: g(y+2)
+  results = [monte_carlo(n,h) for n in iters]
 
   print("==== 5.b ====")
   print(f"Aprox. numérica: \t {quad(g, 2, 3)[0]}")
-  print(f"Monte Carlo: \t\t {[monteCarlo(n, h) for n in iters]}\n")
+  print(f"Monte Carlo: \t\t {results}\n")
 
-def ej5c(iters):
-  def g(x):
-    return x * (1+x**2)**(-2)
-
-  def h(y):
-    return g(1/y - 1) * 1/(y**2)
+def e5c():
+  g = lambda x: x * (1+x**2)**(-2)
+  h = lambda y: g(1/y - 1) * 1/(y**2)
+  results = [monte_carlo(n,h) for n in iters]
 
   print("==== 5.c ====")
   print(f"Aprox. numérica: \t {quad(g, 0, np.inf)[0]}")
-  print(f"Monte Carlo: \t\t {[monteCarlo(n, h) for n in iters]}\n")
+  print(f"Monte Carlo: \t\t {results}\n")
 
-def ej5d(iters):
-  def g(x):
-    return np.exp(-np.square(x))
-
-  def h(y):
-    return g(1/y - 1) * 1/(y**2)
+def e5d():
+  g = lambda x: np.exp(-np.square(x))
+  h = lambda y: 2 * g(1/y - 1) * 1/(y**2)
+  results = [monte_carlo(n,h) for n in iters]
 
   print("==== 5.d ====")
   print(f"Aprox. numérica: \t {quad(g, -np.inf, np.inf)[0]}")
-  print(f"Monte Carlo: \t\t {[2 * monteCarlo(n, h) for n in iters]}\n")
+  print(f"Monte Carlo: \t\t {results}\n")
 
-def ej5e(iters):
-  def g(x, y):
-    return np.exp(np.square(x+y))
+def e5e():
+  g = lambda x, y: np.exp(np.square(x+y))
+  g_fixed = lambda V: g(random(), V)
+  results = [monte_carlo(n, g_fixed) for n in iters]
 
   print("==== 5.e ====")
-  print(f"Aprox. numérica: \t {dblquad(g, 0, 1, lambda y: 0, lambda y: 1)[0]}")
-  print(f"Monte Carlo: \t\t {[monteCarlo(n, lambda V: g(random(), V)) for n in iters]}\n")
+  print(f"Aprox. numérica: \t {dblquad(g, 0, 1, lambda _: 0, lambda _: 1)[0]}")
+  print(f"Monte Carlo: \t\t {results}\n")
 
-def ej5f(iters):
-  def g(x, y):
-    return np.exp(-(x+y))
-
-  def h(u, z):
-    return g(1/u - 1, 1/z - 1) * 1 / np.square(z*u)
+def e5f():
+  g = lambda x, y: np.exp(-(x+y))
+  h = lambda u, z: g(1/u - 1, 1/z - 1) * 1 / np.square(z*u)
+  h_fixed = lambda V: h(random(), V)
+  results = [monte_carlo(n, h_fixed) for n in iters]
 
   print("==== 5.f ====")
-  print(f"Aprox. numérica: \t {dblquad(g, 0, np.inf, lambda y: 0, lambda y: np.inf)[0]}")
-  print(f"Monte Carlo: \t\t {[monteCarlo(n, lambda V: h(random(), V)) for n in iters]}\n")
+  print(f"Aprox. numérica: \t {dblquad(g, 0, np.inf, lambda _: 0, lambda _: np.inf)[0]}")
+  print(f"Monte Carlo: \t\t {results}\n")
 
 def ej5():
-  iters = [100, 1000, 10000, 100000, 1000000]
+  e5a()
+  e5b()
+  e5c()
+  e5d()
+  e5e()
+  e5f()
 
-  ej5a(iters)
-  ej5b(iters)
-  ej5c(iters)
-  ej5d(iters)
-  ej5e(iters)
-  ej5f(iters)
 
-def ej6N():
+def sim_expected_value(n, roll):
+  return sum(roll() for _ in range(n)) / n
+
+def e6_roll():
   N = 0
   S = 0
   while S <= 1:
@@ -178,21 +158,12 @@ def ej6N():
     N += 1
   return N
 
-def ej6Esperanza(n):
-  values = [ej6N() for _ in range(n)]
-  return np.sum(values) / n
-
 def ej6():
-  iters = [100, 1000, 10000, 100000, 1000000]
-  results = []
-
-  for n in iters:
-    results.append(ej6Esperanza(n))
-
+  results = [sim_expected_value(n, e6_roll) for n in iters]
   print(results)
 
 
-def ej7N():
+def e7_roll():
   N = 0
   S = 1
   while S >= np.exp(-3):
@@ -200,60 +171,36 @@ def ej7N():
     N += 1
   return N
 
-def ej7Prob(i):
-  n = 1000000
-  sum = 0
-  for _ in range(n):
-    if ej7N() == i:
-      sum += 1
-  return sum / n
-
-def ej7Esperanza(n):
-  values = [ej7N() for _ in range(n)]
-  return np.sum(values) / n
-
-def ej7a():
-  iters = [100, 1000, 10000, 100000, 1000000]
-  results = []
-
-  for n in iters:
-    results.append(ej7Esperanza(n))
-
+def e7a():
+  results = [sim_expected_value(n, e7_roll) for n in iters]
   print(results)
 
-def ej7b():
-  results = []
-  for i in range(7):
-    results.append(ej7Prob(i))
+def e7b():
+  n = 1000000
+  results = [sim_success_prob(n, e7_roll, lambda X: X == i) for i in range(7)]
   print(results)
 
 def ej7():
-  ej7a()
-  ej7b()
+  e7a()
+  e7b()
 
 
-def ej8Gana():
-  W = random()
-  return ((W < 1/6 or W > 5/6) and 2 * random() > 5/6) \
-    or (1/6 <= W <= 5/6 and random() + random() > 5/6)
+def e8_roll():
+  if 1/6 <= random() <= 5/6:
+    return random() + random()
+  else:
+    return 2 * random()
 
-def ej8ProbGana(n):
-  exitos = 0
-  for _ in range(n):
-    if ej8Gana():
-      exitos += 1
-  return exitos / n
+def e8_is_success(X):
+  return X > 5/6
 
 def ej8():
-  iters = [100, 1000, 10000, 100000, 1000000]
-  results = []
-  for n in iters:
-    results.append(ej8ProbGana(n))
+  results = [sim_success_prob(n, e8_roll, e8_is_success) for n in iters]
   print(results)
 
 
 def main():
-  ej8()
+  e2()
 
 if __name__ == '__main__':
   main()
