@@ -75,7 +75,7 @@ def e4():
 
 def e5a():
   g = lambda x: (1 - x**2)**(3.0/2.0)
-  results = [sim.monte_carlo(n,g) for n in iters]
+  results = [sim.monte_carlo_cont(n,g) for n in iters]
 
   print("==== 5.a ====")
   print(f"Aprox. numérica: \t {quad(g, 0, 1)[0]}")
@@ -84,7 +84,7 @@ def e5a():
 def e5b():
   g = lambda x: x / (x**2 + 1)
   h = lambda y: g(y+2)
-  results = [sim.monte_carlo(n,h) for n in iters]
+  results = [sim.monte_carlo_cont(n,h) for n in iters]
 
   print("==== 5.b ====")
   print(f"Aprox. numérica: \t {quad(g, 2, 3)[0]}")
@@ -93,7 +93,7 @@ def e5b():
 def e5c():
   g = lambda x: x * (1+x**2)**(-2)
   h = lambda y: g(1/y - 1) * 1/(y**2)
-  results = [sim.monte_carlo(n,h) for n in iters]
+  results = [sim.monte_carlo_cont(n,h) for n in iters]
 
   print("==== 5.c ====")
   print(f"Aprox. numérica: \t {quad(g, 0, np.inf)[0]}")
@@ -102,7 +102,7 @@ def e5c():
 def e5d():
   g = lambda x: np.exp(-np.square(x))
   h = lambda y: 2 * g(1/y - 1) * 1/(y**2)
-  results = [sim.monte_carlo(n,h) for n in iters]
+  results = [sim.monte_carlo_cont(n,h) for n in iters]
 
   print("==== 5.d ====")
   print(f"Aprox. numérica: \t {quad(g, -np.inf, np.inf)[0]}")
@@ -111,7 +111,7 @@ def e5d():
 def e5e():
   g = lambda x, y: np.exp(np.square(x+y))
   g_fixed = lambda V: g(random(), V)
-  results = [sim.monte_carlo(n, g_fixed) for n in iters]
+  results = [sim.monte_carlo_cont(n, g_fixed) for n in iters]
 
   print("==== 5.e ====")
   print(f"Aprox. numérica: \t {dblquad(g, 0, 1, lambda _: 0, lambda _: 1)[0]}")
@@ -121,7 +121,7 @@ def e5f():
   g = lambda x, y: np.exp(-(x+y))
   h = lambda u, z: g(1/u - 1, 1/z - 1) * 1 / np.square(z*u)
   h_fixed = lambda V: h(random(), V)
-  results = [sim.monte_carlo(n, h_fixed) for n in iters]
+  results = [sim.monte_carlo_cont(n, h_fixed) for n in iters]
 
   print("==== 5.f ====")
   print(f"Aprox. numérica: \t {dblquad(g, 0, np.inf, lambda _: 0, lambda _: np.inf)[0]}")
