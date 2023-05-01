@@ -6,33 +6,26 @@ import simulate as sim
 iters = [100, 1_000, 10_000, 100_000]
 
 
-def ex1_roll(N=100):
+def ex1_shuffle_cards(N=100):
   stack = list(range(N))
-  cards = []
-  X = 0
+  shuffled = []
 
   for i in range(N):
     card = stack[randint(N-i) - 1]
     stack.remove(card)
-    cards.append(card)
-    if card == i:
-      X += 1
+    shuffled.append(card)
 
-  return X, cards
+  return shuffled
 
-def ex1_roll_X(N=100):
-  X, _ = ex1_roll(N)
-  return X
-
-def ex1_roll_cards(N=100):
-  _, cards = ex1_roll(N)
-  return cards
+def ex1_random_var(N=100):
+  cards = ex1_shuffle_cards(N)
+  return sum(cards[i] == i for i in range(N))
 
 def ex1_is_success_i(cards, r=10):
   i = 0
   is_success = True
 
-  while is_success and i < r < len(cards):
+  while is_success and i < r:
     is_success = is_success and cards[i] == i
     i += 1
 
@@ -42,7 +35,7 @@ def ex1_is_success_ii(cards, r=10):
   i = 0
   is_success = True
 
-  while is_success and i < r < len(cards):
+  while is_success and i < r:
     is_success = is_success and cards[i] == i
     i += 1
 
@@ -53,11 +46,10 @@ def ex1_is_success_ii(cards, r=10):
   return is_success
 
 def ex1():
-  results_1a_i = [sim.success_prob(n, ex1_roll_cards, ex1_is_success_i) for n in iters]
-  results_1a_ii = [sim.success_prob(n, ex1_roll_cards, ex1_is_success_ii) for n in iters]
-  expected_vals = [sim.expected_value(n, ex1_roll_X) for n in iters]
-  expected_vals_sqrd = [sim.expected_value(n, lambda: ex1_roll_X()**2) for n in iters]
-  variances = [expected_vals_sqrd[i] - expected_vals[i]**2 for i in range(len(iters))]
+  results_1a_i = [sim.success_prob(n, ex1_shuffle_cards, ex1_is_success_i) for n in iters]
+  results_1a_ii = [sim.success_prob(n, ex1_shuffle_cards, ex1_is_success_ii) for n in iters]
+  expected_vals = [sim.expected_value(n, ex1_random_var) for n in iters]
+  variances = [sim.variance(iters[i], ex1_random_var, expected_vals[i]) for i in range(len(iters))]
 
   print(f'Iteraciones: \t{iters}')
   print(f'Ej. 1a.i: \t{results_1a_i}')
@@ -84,7 +76,7 @@ def ex2():
   print(f'Suma exacta: \t\t{total_sum} \t({time() - start}s)')
 
 
-def ex3_roll():
+def ex3_random_var():
   seen = []
   N = 0
 
@@ -97,17 +89,16 @@ def ex3_roll():
   return N
 
 def ex3():
-  expected_vals = [sim.expected_value(n, ex3_roll) for n in iters]
-  expected_vals_sqrd = [sim.expected_value(n, lambda: ex3_roll()**2) for n in iters]
-  variances = [expected_vals_sqrd[i] - expected_vals[i]**2 for i in range(len(iters))]
-  is_success_i = [sim.success_prob(n, ex3_roll, lambda N: N >= 15) for n in iters]
-  is_success_ii = [sim.success_prob(n, ex3_roll, lambda N: N <= 9) for n in iters]
+  expected_vals = [sim.expected_value(n, ex3_random_var) for n in iters]
+  std_deviations = [sim.std_deviation(iters[i], ex3_random_var, expected_vals[i]) for i in range(len(iters))]
+  is_success_i = [sim.success_prob(n, ex3_random_var, lambda N: N >= 15) for n in iters]
+  is_success_ii = [sim.success_prob(n, ex3_random_var, lambda N: N <= 9) for n in iters]
 
   print(f'Iteraciones: \t\t{iters}')
   print(f'Esperanza: \t\t{expected_vals}')
-  print(f'Desviación estándar: \t{np.sqrt(variances)}')
-  print(f'Prob. >= 15: \t\t{is_success_i}')
-  print(f'Prob. <= 9: \t\t{is_success_ii}')
+  print(f'Desviación estándar: \t{std_deviations}')
+  print(f'Prob. N >= 15: \t\t{is_success_i}')
+  print(f'Prob. N <= 9: \t\t{is_success_ii}')
 
 
 def main():
