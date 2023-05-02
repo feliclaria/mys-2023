@@ -1,5 +1,5 @@
 from random import random
-from my_random import randint
+from discrete import randint
 import math
 
 def success_prob(n, random_var, is_success):
