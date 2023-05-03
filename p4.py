@@ -127,7 +127,7 @@ def ex4():
   print(f'Método de aceptación y rechazo: \t{time() - start}s')
 
   start = time()
-  [disc.inverse_trans_arr(lambda i: probs_X[i], values_X) for _ in range(n)]
+  [disc.inverse_trans_arr(probs_X, values_X) for _ in range(n)]
   print(f'Método de transformada inversa: \t{time() - start}s')
 
   start = time()
@@ -171,7 +171,7 @@ def ex5():
   print(f'  P[X = 10]: \t\t{math.comb(n, 10) * p**10 * (1-p)**(n-10)}')
 
 
-def ex6_inverse_trans():
+def ex6_inverse_trans_optimized():
   U = random()
   if U < 0.35: return 3
   elif U < 0.55: return 1
@@ -179,13 +179,36 @@ def ex6_inverse_trans():
   elif U < 0.90: return 0
   else: return 2
 
+def ex6_inverse_trans():
+  U = random()
+  if U < 0.15: return 0
+  elif U < 0.35: return 1
+  elif U < 0.45: return 2
+  elif U < 0.80: return 3
+  else: return 4
+
 def ex6():
   sims = 10_000
 
   start = time()
+  [ex6_inverse_trans_optimized() for _ in range(sims)]
+  end = time()
+  print(f'Trans. inversa (ordenada): \t\t{end - start}s')
+
+  start = time()
   [ex6_inverse_trans() for _ in range(sims)]
   end = time()
-  print(f'Transformada inversa: \t{end - start}s')
+  print(f'Trans. inversa (desordenada): \t\t{end - start}s')
+
+  start = time()
+  [disc.inverse_trans_arr([0.35, 0.20, 0.20, 0.15, 0.10], [3, 1, 4, 0, 2]) for _ in range(sims)]
+  end = time()
+  print(f'Trans. inversa cíclica (ordenada): \t{end - start}s')
+
+  start = time()
+  [disc.inverse_trans_arr([0.15, 0.20, 0.10, 0.35, 0.20], [0, 1, 2, 3, 4]) for _ in range(sims)]
+  end = time()
+  print(f'Trans. inversa cíclica (desordenada): \t{end - start}s')
 
   n = 4
   p = 0.45
@@ -198,7 +221,7 @@ def ex6():
   start = time()
   [disc.accept_reject(Y, probs_X, probs_Y, c) for _ in range(sims)]
   end = time()
-  print(f'Aceptación y rechazo: \t{end - start}s')
+  print(f'Aceptación y rechazo: \t\t{end - start}s')
 
 
 def ex7():
@@ -207,42 +230,92 @@ def ex7():
 
   is_success = lambda Y: Y > 2
   prob = sim.success_prob(n, lambda: disc.poisson(lambd), is_success)
-  prob_optimized = sim.success_prob(n, lambda: disc.poisson_optimized(lambd), is_success)
+  prob_optimized = sim.success_prob(n, lambda: disc.poisson_fast(lambd), is_success)
 
   print(f'P[Y > 2] con transformada inversa: \t\t{prob}')
   print(f'P[Y > 2] con transformada inversa mejorada: \t{prob_optimized}')
 
 
-def ex8_prob(i, k, lambd):
+def ex8_X_pmf(i, k, lambd):
   g = lambda x: lambd**x / math.factorial(x) * math.exp(-lambd)
   return g(i) / sum(g(j) for j in range(k+1))
+
+def ex8_X_inverse_trans(k, lambd):
+  values = list(range(k+1))
+  probs = [ex8_X_pmf(i, k, lambd) for i in values]
+  return lambda: disc.inverse_trans_arr(probs, values)
+
+def ex8_X_accept_reject(k, lambd):
+  values_X = range(k+1)
+  probs_X = [ex8_X_pmf(i, k, lambd) for i in values_X]
+
+  Y = lambda: disc.randint(k+1)-1
+  values_Y = range(k+1)
+  probs_Y = [1/(k+1) for _ in values_Y]
+
+  c = max(probs_X[i] / probs_Y[i] for i in range(len(probs_X)))
+
+  return lambda: disc.accept_reject(Y, probs_X, probs_Y, c)
 
 def ex8b():
   k = 10
   lambd = 0.7
 
-  probs_X = [ex8_prob(i, k, lambd) for i in range(k+1)]
-  values_X = list(range(k+1))
-
-  Y = lambda: disc.randint(k+1) - 1
-  probs_Y = [1/(k+1) for _ in range(k+1)]
-
-  c = max(probs_X[i] / probs_Y[i] for i in range(k+1))
+  X_inverse_trans = ex8_X_inverse_trans(k, lambd)
+  X_accept_reject = ex8_X_accept_reject(k, lambd)
 
   n = 1_000
   is_success = lambda X: X > 2
 
-  result = 1 - sum(ex8_prob(i, k, lambd) for i in range(3))
-  result_it = sim.success_prob(n, lambda: disc.inverse_trans_arr(probs_X, values_X), is_success)
-  result_ar = sim.success_prob(n, lambda: disc.accept_reject(Y, probs_X, probs_Y, c), is_success)
+  result = 1 - sum(ex8_X_pmf(i, k, lambd) for i in range(3))
+  result_inverse_trans = sim.success_prob(n, X_inverse_trans, is_success)
+  result_accept_reject = sim.success_prob(n, X_accept_reject, is_success)
 
   print(f'P[X > 2] = {result}')
-  print(f'Transformada inversa: \t{result_it}')
-  print(f'Aceptacón y rechazo: \t{result_ar}')
+  print(f'Transformada inversa: \t{result_inverse_trans}')
+  print(f'Aceptacón y rechazo: \t{result_accept_reject}')
+
+def ex8_Xab_pmf(i, a, b, lambd):
+  if i < a or i > b:
+    return 0
+  g = lambda x: lambd**x / math.factorial(x) * math.exp(-lambd)
+  return g(i) / sum(g(j) for j in range(a, b+1))
+
+def ex8_Xab_accept_reject(a, b, lambd):
+  Y = lambda: disc.randint(b+1)-1
+
+  pmf_X = lambda i: ex8_Xab_pmf(i, a, b, lambd)
+  pmf_Y = lambda _: 1/(b+1)
+
+  values_X = range(a, b+1)
+  values_Y = range(b+1)
+
+  probs_X = [pmf_X(i) for i in values_Y]
+  probs_Y = [pmf_Y(i) for i in values_Y]
+
+  c = max(pmf_X(i) / pmf_Y(i) for i in values_X)
+
+  return lambda: disc.accept_reject(Y, probs_X, probs_Y, c)
+
+def ex8c():
+  a = 0
+  b = 10
+  lambd = 0.7
+
+  Xab_accept_reject = ex8_Xab_accept_reject(a, b, lambd)
+
+  n = 1_000
+  is_success = lambda X: X > 2
+
+  result = 1 - sum(ex8_Xab_pmf(i, a, b, lambd) for i in range(3))
+  result_accept_reject = sim.success_prob(n, Xab_accept_reject, is_success)
+
+  print(f'P[X > 2] = {result}')
+  print(f'Aceptacón y rechazo: \t{result_accept_reject}')
 
 def ex8():
-  ex8b()
-  # TODO: 8C
+  # ex8b()
+  ex8c()
 
 
 def ex9():
@@ -250,16 +323,7 @@ def ex9():
 
 
 def main():
-  start = time()
-  [disc.poisson(100) for _ in range(100_000)]
-  end = time()
-  print(end - start)
-
-
-  start = time()
-  [disc.poisson_rec(100) for _ in range(100_000)]
-  end = time()
-  print(end - start)
+  ex8()
 
 if __name__ == '__main__':
   main()

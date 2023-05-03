@@ -1,87 +1,102 @@
 from random import random
 import math
 
+# TODO: Crear generador de funciones de trans. inversa y aceptación-rechazo
+
 def randint(N):
   return int(N * random()) + 1
 
 def binomial(n, p):
   i = 0
-  F = (1 - p)**n
+  prob_i = (1 - p)**n
+  F = prob_i
   U = random()
 
   while F <= U:
-    F += F * (n-i) * p / ((i+1) * (1-p))
     i += 1
+    prob_i *= (n-i-1) * p / (i * (1-p))
+    F += prob_i
 
   return i
 
 def negative_binomial(s, p):
   i = 0
-  F = p**s
+  prob_i = p**s
+  F = p
   U = random()
 
   while F <= U:
-    F += F * (s+i) * (1-p) / (i+1)
     i += 1
+    prob_i *= (s+i-1) * (1-p) / i
+    F += p
 
   return i
 
 def poisson(lambd):
   i = 0
-  F = math.exp(-lambd)
+  prob_i = math.exp(-lambd)
+  F = prob_i
   U = random()
 
   while F <= U:
-    F += F * lambd / (i+1)
     i += 1
+    prob_i *= lambd / i
+    F += prob_i
 
   return i
 
-def poisson_optimized(lambd):
-  F = math.exp(-lambd)
+def poisson_fast(lambd):
+  prob_i = math.exp(-lambd)
+  F = prob_i
 
-  for j in range(int(lambd)):
-    F += F * lambd / (j+1)
+  for i in range(1, int(lambd)+1):
+    prob_i *= lambd / i
+    F += prob_i
 
   U = random()
 
   if F <= U:
-    j = int(lambd) + 1
+    i = int(lambd) + 1
 
     while F <= U:
-      F += F * lambd / j
-      j += 1
+      prob_i *= lambd / i
+      F += prob_i
+      i += 1
 
-    return j - 1
-
+    return i - 1
   else:
-    j = int(lambd)
-
-    while U < F:
-      F -= F * j / lambd
-      j -= 1
-
-    return j + 1
+    i = int(lambd)
+    
+    while F > U:
+      F -= prob_i
+      prob_i *= i / lambd
+      i -= 1
+    
+    return i + 1
 
 def geometric(p):
   i = 0
-  F = p
+  prob_i = p
+  F = prob_i
   U = random()
 
   while F <= U:
-    F += F * (1-p)
     i += 1
+    prob_i *= 1-p
+    F += prob_i
 
   return i
 
 def hypergeometric(n, N, M):
   i = 0
-  F = math.comb(M-N, n) / math.comb(M, n)
+  prob_i = math.comb(M-N, n) / math.comb(M, n)
+  F = prob_i
   U = random()
 
   while F <= U:
-    F += F * (N-i) * (n-i) / ((i+1) * (1 - N + M - n + i))
     i += 1
+    prob_i *= (N-(i-1)) * (n-(i-1)) / (i * (i + M - N - n))
+    F += prob_i
 
   return i
 
@@ -96,33 +111,35 @@ def inverse_trans_arr(probs, values):
 
   return values[i]
 
-def inverse_trans_rec(prob_base, prob_next):
+def inverse_trans_rec(prob_base, prob_fun):
   i = 0
-  F = prob_base
+  prob_i = prob_base
+  F = prob_i
   U = random()
 
   while F <= U:
-    F += prob_next(F, i)
     i += 1
+    prob_i = prob_fun(prob_i, i)
+    F += prob_i
 
   return i
 
 def binomial_rec(n, p):
-  return inverse_trans_rec((1-p)**n, lambda prob, i: prob * (n-i) * p / ((i+1) * (1-p)))
+  return inverse_trans_rec((1-p)**n, lambda prob_prev, i: prob_prev * (n-i-1) * p / (i * (1-p)))
 
 def negative_binomial_rec(s, p):
-  return inverse_trans_rec(p**s, lambda prob, i: prob * (s+i) * (1-p) / (i+1))
+  return inverse_trans_rec(p**s, lambda prob_prev, i: prob_prev * (s+i-1) * (1-p) / i)
 
 def poisson_rec(lambd):
-  return inverse_trans_rec(math.exp(-lambd), lambda prob, i: prob * lambd / (i+1))
+  return inverse_trans_rec(math.exp(-lambd), lambda prob_prev, i: prob_prev * lambd / i)
 
 def geometric_rec(p):
-  return inverse_trans_rec(p, lambda prob, _: prob * (1-p))
+  return inverse_trans_rec(p, lambda prob_prev, _: prob_prev * (1-p))
 
 def hypergeometric_rec(n, N, M):
   return inverse_trans_rec(
     math.comb(M-N, n) / math.comb(M, n),
-    lambda prob, i: prob * (N-i) * (n-i) / ((i+1) * (1 + i + M - N - n))
+    lambda prob_prev, i: prob_prev * (N-(i-1)) * (n-(i-1)) / (i * (i + M - N - n))
   )
 
 def accept_reject(random_var_Y, probs_X, probs_Y, c):
