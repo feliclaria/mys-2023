@@ -1,7 +1,7 @@
 from random import random
+from functools import reduce
+from operator import iconcat
 import math
-
-# TODO: Crear generador de funciones de trans. inversa y aceptación-rechazo
 
 def randint(N):
   return int(N * random()) + 1
@@ -66,12 +66,12 @@ def poisson_fast(lambd):
     return i - 1
   else:
     i = int(lambd)
-    
+
     while F > U:
       F -= prob_i
       prob_i *= i / lambd
       i -= 1
-    
+
     return i + 1
 
 def geometric(p):
@@ -150,11 +150,13 @@ def accept_reject(random_var_Y, probs_X, probs_Y, c):
 
   return Y
 
-def urn_random(probs, values):
-  A = []
+def urn(probs, values):
+  # iterator of lists
+  # each list contains an index, reapeated prob(index) * 100 times
+  indices = ([index] * int(prob * 100) for index, prob in enumerate(probs))
 
-  for index, prob in enumerate(probs):
-    for _ in range(int(prob * 100)):
-      A.append(values[index])
+  # flat index list
+  indices = reduce(iconcat, indices, [])
 
-  return A[randint(100) - 1]
+  index = indices[randint(100) - 1]
+  return values[index]

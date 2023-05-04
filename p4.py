@@ -131,7 +131,7 @@ def ex4():
   print(f'Método de transformada inversa: \t{time() - start}s')
 
   start = time()
-  [disc.urn_random(probs_X, values_X) for _ in range(n)]
+  [disc.urn(probs_X, values_X) for _ in range(n)]
   print(f'Método de la urna: \t\t\t{time() - start}s')
 
 
@@ -323,7 +323,7 @@ def ex9():
 
 
 def main():
-  ex8()
+  ex4()
 
 if __name__ == '__main__':
   main()
