@@ -267,13 +267,20 @@ def ex8b():
   n = 1_000
   is_success = lambda X: X > 2
 
-  result = 1 - sum(ex8_X_pmf(i, k, lambd) for i in range(3))
-  result_inverse_trans = sim.success_prob(n, X_inverse_trans, is_success)
-  result_accept_reject = sim.success_prob(n, X_accept_reject, is_success)
+  print('P[X > 2]')
 
-  print(f'P[X > 2] = {result}')
-  print(f'Transformada inversa: \t{result_inverse_trans}')
-  print(f'Aceptacón y rechazo: \t{result_accept_reject}')
+  result = 1 - sum(ex8_X_pmf(i, k, lambd) for i in range(3))
+  print(f'Valor exacto: {result}')
+
+  start = time()
+  result_inverse_trans = sim.success_prob(n, X_inverse_trans, is_success)
+  end = time()
+  print(f'Transformada inversa: \t{result_inverse_trans} \t({end - start}s)')
+
+  start = time()
+  result_accept_reject = sim.success_prob(n, X_accept_reject, is_success)
+  end = time()
+  print(f'Aceptacón y rechazo: \t{result_accept_reject} \t({end - start}s)')
 
 def ex8_Xab_pmf(i, a, b, lambd):
   if i < a or i > b:
@@ -282,10 +289,10 @@ def ex8_Xab_pmf(i, a, b, lambd):
   return g(i) / sum(g(j) for j in range(a, b+1))
 
 def ex8_Xab_accept_reject(a, b, lambd):
-  Y = lambda: disc.randint(b+1)-1
+  Y = ex8_X_inverse_trans(b, lambd)
 
   pmf_X = lambda i: ex8_Xab_pmf(i, a, b, lambd)
-  pmf_Y = lambda _: 1/(b+1)
+  pmf_Y = lambda i: ex8_X_pmf(i, b, lambd)
 
   values_X = range(a, b+1)
   values_Y = range(b+1)
@@ -307,23 +314,66 @@ def ex8c():
   n = 1_000
   is_success = lambda X: X > 2
 
-  result = 1 - sum(ex8_Xab_pmf(i, a, b, lambd) for i in range(3))
-  result_accept_reject = sim.success_prob(n, Xab_accept_reject, is_success)
+  print('P[X > 2]')
 
-  print(f'P[X > 2] = {result}')
-  print(f'Aceptacón y rechazo: \t{result_accept_reject}')
+  result = 1 - sum(ex8_Xab_pmf(i, a, b, lambd) for i in range(a, 3))
+  print(f'Valor exacto: {result}')
+
+
+  start = time()
+  result_accept_reject = sim.success_prob(n, Xab_accept_reject, is_success)
+  end = time()
+  print(f'Aceptacón y rechazo: \t{result_accept_reject} \t({end - start}s)')
 
 def ex8():
-  # ex8b()
+  print('\n******** 8b ********')
+  ex8b()
+  print('\n******** 8c ********')
   ex8c()
 
 
-def ex9():
-  return None
+def ex9_geometric(p):
+  i = 1
+  while random() > p:
+    i += 1
+  return i
 
+def ex9_execute(p, sims):
+  print(f'\np = {p}, {sims} simulaciones')
+
+  start = time()
+  results_it = [disc.geometric(p) for _ in range(sims)]
+  end = time()
+
+  expected_val_ti = sum(results_it) / sims
+
+  print(f'\nEsperanza real: {1/p}')
+
+  print(f'\nTransformada inversa')
+  print(f'- Tiempo: {end - start}s')
+  print(f'- Esperanza: {expected_val_ti}s')
+
+  start = time()
+  results_sim = [ex9_geometric(p) for _ in range(sims)]
+  end = time()
+
+  expected_val_sim = sum(results_sim) / sims
+
+  print(f'\nSimulando ensayos')
+  print(f'- Tiempo: {end - start}s')
+  print(f'- Esperanza: {expected_val_sim}s')
+
+
+def ex9():
+  sims = 10_000
+  print('\n********************************')
+  ex9_execute(0.8, sims)
+  print('\n********************************')
+  ex9_execute(0.2, sims)
+  print('\n********************************')
 
 def main():
-  ex4()
+  ex9()
 
 if __name__ == '__main__':
   main()

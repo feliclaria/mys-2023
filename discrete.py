@@ -19,15 +19,15 @@ def binomial(n, p):
 
   return i
 
-def negative_binomial(s, p):
-  i = 0
-  prob_i = p**s
+def negative_binomial(r, p):
+  i = r
+  prob_i = p**r
   F = p
   U = random()
 
   while F <= U:
     i += 1
-    prob_i *= (s+i-1) * (1-p) / i
+    prob_i *= (r+i-1) * (1-p) / i
     F += p
 
   return i
@@ -75,14 +75,14 @@ def poisson_fast(lambd):
     return i + 1
 
 def geometric(p):
-  i = 0
+  i = 1
   prob_i = p
   F = prob_i
   U = random()
 
   while F <= U:
     i += 1
-    prob_i *= 1-p
+    prob_i *= (1-p)
     F += prob_i
 
   return i
@@ -111,33 +111,34 @@ def inverse_trans_arr(probs, values):
 
   return values[i]
 
-def inverse_trans_rec(prob_base, prob_fun):
-  i = 0
-  prob_i = prob_base
+def inverse_trans_rec(initial_val, initial_prob, inductive_prob):
+  i = initial_val
+  prob_i = initial_prob
   F = prob_i
   U = random()
 
   while F <= U:
     i += 1
-    prob_i = prob_fun(prob_i, i)
+    prob_i = inductive_prob(prob_i, i)
     F += prob_i
 
   return i
 
 def binomial_rec(n, p):
-  return inverse_trans_rec((1-p)**n, lambda prob_prev, i: prob_prev * (n-i-1) * p / (i * (1-p)))
+  return inverse_trans_rec(0, (1-p)**n, lambda prev_prob, i: prev_prob * (n-i-1) * p / (i * (1-p)))
 
-def negative_binomial_rec(s, p):
-  return inverse_trans_rec(p**s, lambda prob_prev, i: prob_prev * (s+i-1) * (1-p) / i)
+def negative_binomial_rec(r, p):
+  return inverse_trans_rec(r, p**r, lambda prev_prob, i: prev_prob * (r+i-1) * (1-p) / i)
 
 def poisson_rec(lambd):
-  return inverse_trans_rec(math.exp(-lambd), lambda prob_prev, i: prob_prev * lambd / i)
+  return inverse_trans_rec(0, math.exp(-lambd), lambda prob_prev, i: prob_prev * lambd / i)
 
 def geometric_rec(p):
-  return inverse_trans_rec(p, lambda prob_prev, _: prob_prev * (1-p))
+  return inverse_trans_rec(1, p, lambda prev_prob, _: prev_prob * (1-p))
 
 def hypergeometric_rec(n, N, M):
   return inverse_trans_rec(
+    0,
     math.comb(M-N, n) / math.comb(M, n),
     lambda prob_prev, i: prob_prev * (N-(i-1)) * (n-(i-1)) / (i * (i + M - N - n))
   )
