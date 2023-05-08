@@ -236,40 +236,31 @@ def ex7():
   print(f'P[Y > 2] con transformada inversa mejorada: \t{prob_optimized}')
 
 
-def ex8_X_pmf(i, k, lambd):
+def ex8a_pmf_X(i, k, lambd):
   g = lambda x: lambd**x / math.factorial(x) * math.exp(-lambd)
   return g(i) / sum(g(j) for j in range(k+1))
-
-def ex8_X_inverse_trans(k, lambd):
-  values = list(range(k+1))
-  probs = [ex8_X_pmf(i, k, lambd) for i in values]
-  return lambda: disc.inverse_trans_arr(probs, values)
-
-def ex8_X_accept_reject(k, lambd):
-  values_X = range(k+1)
-  probs_X = [ex8_X_pmf(i, k, lambd) for i in values_X]
-
-  Y = lambda: disc.randint(k+1)-1
-  values_Y = range(k+1)
-  probs_Y = [1/(k+1) for _ in values_Y]
-
-  c = max(probs_X[i] / probs_Y[i] for i in range(len(probs_X)))
-
-  return lambda: disc.accept_reject(Y, probs_X, probs_Y, c)
 
 def ex8b():
   k = 10
   lambd = 0.7
 
-  X_inverse_trans = ex8_X_inverse_trans(k, lambd)
-  X_accept_reject = ex8_X_accept_reject(k, lambd)
+  Y = lambda: disc.randint(k+1)-1
+
+  pmf_Y = lambda _: 1/(k+1)
+  values_Y = range(k+1)
+
+  pmf_X = lambda i: ex8a_pmf_X(i, k, lambd)
+  values_X = list(range(k+1))
+
+  X_inverse_trans = disc.inverse_trans_fun(pmf_X, values_X)
+  X_accept_reject = disc.accept_reject_fun(Y, pmf_X, pmf_Y, values_X, values_Y)
 
   n = 1_000
   is_success = lambda X: X > 2
 
   print('P[X > 2]')
 
-  result = 1 - sum(ex8_X_pmf(i, k, lambd) for i in range(3))
+  result = 1.0 - sum(ex8a_pmf_X(i, k, lambd) for i in range(3))
   print(f'Valor exacto: {result}')
 
   start = time()
@@ -282,46 +273,38 @@ def ex8b():
   end = time()
   print(f'Aceptacón y rechazo: \t{result_accept_reject} \t({end - start}s)')
 
-def ex8_Xab_pmf(i, a, b, lambd):
+def ex8c_pmf_X(i, a, b, lambd):
   if i < a or i > b:
     return 0
   g = lambda x: lambd**x / math.factorial(x) * math.exp(-lambd)
   return g(i) / sum(g(j) for j in range(a, b+1))
-
-def ex8_Xab_accept_reject(a, b, lambd):
-  Y = ex8_X_inverse_trans(b, lambd)
-
-  pmf_X = lambda i: ex8_Xab_pmf(i, a, b, lambd)
-  pmf_Y = lambda i: ex8_X_pmf(i, b, lambd)
-
-  values_X = range(a, b+1)
-  values_Y = range(b+1)
-
-  probs_X = [pmf_X(i) for i in values_Y]
-  probs_Y = [pmf_Y(i) for i in values_Y]
-
-  c = max(pmf_X(i) / pmf_Y(i) for i in values_X)
-
-  return lambda: disc.accept_reject(Y, probs_X, probs_Y, c)
 
 def ex8c():
   a = 0
   b = 10
   lambd = 0.7
 
-  Xab_accept_reject = ex8_Xab_accept_reject(a, b, lambd)
+  pmf_Y = lambda i: ex8a_pmf_X(i, b, lambd)
+  values_Y = range(b+1)
+
+  Y = disc.inverse_trans_fun(pmf_Y, values_Y)
+
+  pmf_X = lambda i: ex8c_pmf_X(i, a, b, lambd)
+  values_X = range(a, b+1)
+
+  X = disc.accept_reject_fun(Y, pmf_X, pmf_Y, values_X, values_Y)
 
   n = 1_000
   is_success = lambda X: X > 2
 
   print('P[X > 2]')
 
-  result = 1 - sum(ex8_Xab_pmf(i, a, b, lambd) for i in range(a, 3))
+  result = 1.0 - sum(ex8c_pmf_X(i, a, b, lambd) for i in range(a, 3))
   print(f'Valor exacto: {result}')
 
 
   start = time()
-  result_accept_reject = sim.success_prob(n, Xab_accept_reject, is_success)
+  result_accept_reject = sim.success_prob(n, X, is_success)
   end = time()
   print(f'Aceptacón y rechazo: \t{result_accept_reject} \t({end - start}s)')
 
@@ -373,7 +356,7 @@ def ex9():
   print('\n********************************')
 
 def main():
-  ex9()
+  ex8()
 
 if __name__ == '__main__':
   main()

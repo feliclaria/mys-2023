@@ -19,3 +19,4 @@ def monte_carlo_cont(n, fun):
 
 def monte_carlo_disc(n, N, fun):
   return sum(N * fun(randint(N)) for _ in range(n)) / n
+
