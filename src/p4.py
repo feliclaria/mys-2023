@@ -124,15 +124,18 @@ def ex4():
 
   start = time()
   [disc.accept_reject(Y, probs_X, probs_Y, c) for _ in range(n)]
-  print(f'Método de aceptación y rechazo: \t{time() - start}s')
+  end = time()
+  print(f'Método de aceptación y rechazo: \t{end - start}s')
 
   start = time()
   [disc.inverse_trans_arr(probs_X, values_X) for _ in range(n)]
-  print(f'Método de transformada inversa: \t{time() - start}s')
+  end = time()
+  print(f'Método de transformada inversa: \t{end - start}s')
 
   start = time()
   [disc.urn(probs_X, values_X) for _ in range(n)]
-  print(f'Método de la urna: \t\t\t{time() - start}s')
+  end = time()
+  print(f'Método de la urna: \t\t\t{end - start}s')
 
 
 def ex5_binomial(n, p):
@@ -356,7 +359,7 @@ def ex9():
   print('\n********************************')
 
 def main():
-  ex8()
+  ex4()
 
 if __name__ == '__main__':
   main()
