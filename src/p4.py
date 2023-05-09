@@ -358,8 +358,20 @@ def ex9():
   ex9_execute(0.2, sims)
   print('\n********************************')
 
+
+def ex10():
+  pmf = lambda j: (1/2)**(j+1) + 1/4 * (2/3)**j
+  X = lambda: disc.inverse_trans_pmf(1, pmf)
+
+  expected_value = 2.5  # precalculado manualmente
+  expected_value_sim = sim.expected_value(1_000, X)
+
+  print(f'Valor esperado real: \t\t{expected_value}')
+  print(f'Valor esperado simulado: \t{expected_value_sim}')
+
+
 def main():
-  ex4()
+  ex10()
 
 if __name__ == '__main__':
   main()
