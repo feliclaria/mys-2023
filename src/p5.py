@@ -249,8 +249,65 @@ def ex8():
   return
 
 
+def ex9_exp(mu, sigma):
+  Y1 = -math.log(1 - random())
+  Y2 = -math.log(1 - random())
+  while Y2 <= (Y1 - 1)**2 / 2:
+    Y1 = -math.log(1 - random())
+    Y2 = -math.log(1 - random())
+  if random() < 0.5: return Y1 * sigma + mu
+  else: return -Y1 * sigma + mu
+
+def ex9_polar(mu, sigma):
+  sqr_rad = -2 * math.log(1 - random())
+  theta = random() * 2 * math.pi
+  X = math.sqrt(sqr_rad) * math.cos(theta)
+  Y = math.sqrt(sqr_rad) * math.sin(theta)
+  return X * sigma + mu, Y * sigma + mu
+
+def ex9_uniform(mu, sigma):
+  const = 4 * math.exp(-1) / 2.0
+
+  u = random()
+  v = 1 - random()
+  X = (u - 0.5) / v
+
+  while const * X**2 > - math.log(v):
+    u = random()
+    v = 1 - random()
+    X = (u - 0.5) / v
+  return X * sigma + mu
+
+def ex9():
+  sims = 10_000
+  mu = -2
+  sigma = 0.5
+
+  E = {'exp': 0, 'polar': 0, 'uniform': 0}
+  Var = {'exp': 0, 'polar': 0, 'uniform': 0}
+  Var_fun = lambda x, E: (x - E)**2
+
+  for k in range(int(sims / 2)):
+    E['exp'] = (E['exp'] * 2 * k + ex9_exp(mu, sigma) + ex9_exp(mu, sigma)) / (2 * k + 2)
+    E['polar'] = (E['polar'] * 2 * k + sum(ex9_polar(mu, sigma))) / (2 * k + 2)
+    E['uniform'] = (E['uniform'] * 2 * k + ex9_uniform(mu, sigma) + ex9_uniform(mu, sigma)) / (2 * k + 2)
+
+    Var['exp'] = (Var['exp'] * 2 * k + Var_fun(ex9_exp(mu, sigma), E['exp']) + Var_fun(ex9_exp(mu, sigma), E['exp'])) / (2 * k + 2)
+    Var['polar'] = (Var['polar'] * 2 * k + sum(map(lambda x: Var_fun(x, E['polar']), ex9_polar(mu, sigma)))) / (2 * k + 2)
+    Var['uniform'] = (Var['uniform'] * 2 * k + Var_fun(ex9_exp(mu, sigma), E['uniform']) + Var_fun(ex9_exp(mu, sigma), E['exp'])) / (2 * k + 2)
+
+  table = PrettyTable(['#', 'E[X]', 'Var[X]'])
+  table.title = 'Ejercicio 9'
+  table.align = 'l'
+  table.add_row(['Valor exacto', mu, sigma**2])
+  table.add_row(['Gen. de exponenciales', E['exp'], Var['exp']])
+  table.add_row(['Método polar', E['polar'], Var['polar']])
+  table.add_row(['Razón de uniformes', E['uniform'], Var['uniform']])
+  print(table)
+
+
 def main():
-  ex8()
+  ex9()
   return
 
 if __name__ == '__main__':
