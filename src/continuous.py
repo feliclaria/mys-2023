@@ -16,7 +16,7 @@ def exponential(lambd: float) -> float:
   float
     Valor entre 0 e infinito si `lambd > 0`, y entre infinito negativo y 0 si `lambd < 0`.
   """
-  return - math.log(random()) / lambd
+  return - math.log(1 - random()) / lambd
 
 def composition_method(
   gens: List[Callable[[], float]],

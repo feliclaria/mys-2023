@@ -19,7 +19,7 @@ def ex1b():
 
 def ex1c():
   u = random()
-  if u < 0.0625: return math.log(2) + math.log(u) / 4
+  if u < 0.0625: return math.log(2) + math.log(1 - u) / 4
   else: return 4 * u - 0.25
 
 
@@ -28,7 +28,7 @@ def ex2_pareto(a):
   return 1 / ((1-u) ** (1/a))
 
 def ex2_erlang(mu, k):
-  u_prod = math.prod(random() for _ in range(k))
+  u_prod = math.prod(1 - random() for _ in range(k))
   return - math.log(u_prod) / mu
 
 def ex2_weibull(lambd, beta):
@@ -74,7 +74,7 @@ def ex3b():
 
 def ex3b_optimized():
   u = random()
-  aux = -1 * math.log(random())
+  aux = -1 * math.log(1 - random())
   if u < 0.5: return 3 * aux
   elif u < 0.8: return 5 * aux
   else: return 7 * aux
@@ -202,7 +202,7 @@ def ex7():
   table = PrettyTable(['#', 'E[X]', 'P(X<=2)', 'Tiempo (s)'])
   table.title = 'Ejercicio 7'
   table.align = 'l'
-  table.add_row(['Valor exacto', math.e - 1, math.log(2 ), '-'])
+  table.add_row(['Valor exacto', math.e - 1, math.log(2), '-'])
   table.add_row(['Transformada inversa', exp_val_inv_tr, prob_success_inv_tr, time_inv_tr])
   table.add_row(['Aceptación y rechazo', exp_val_acc_rej, prob_success_acc_rej, time_acc_rej])
 
