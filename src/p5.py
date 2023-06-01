@@ -265,18 +265,20 @@ def ex9_polar(mu, sigma):
   Y = math.sqrt(sqr_rad) * math.sin(theta)
   return X * sigma + mu, Y * sigma + mu
 
-def ex9_uniform(mu, sigma):
-  const = 4 * math.exp(-1) / 2.0
 
-  u = random()
-  v = 1 - random()
+# ex9_uniform aux. constants
+_E9_MAGIC_CONST_A = 2 * math.exp(-1)
+_E9_MAGIC_CONST_B = 4 * math.exp(-0.5) / math.sqrt(2)
+
+def ex9_uniform(mu, sigma):
+  u, v = random(), 1 - random()
   X = (u - 0.5) / v
 
-  while const * X**2 > - math.log(v):
-    u = random()
-    v = 1 - random()
+  while _E9_MAGIC_CONST_A * X**2 > -math.log(v):
+    u, v = random(), 1 - random()
     X = (u - 0.5) / v
-  return X * sigma + mu
+
+  return _E9_MAGIC_CONST_B * X * sigma + mu
 
 def ex9():
   sims = 10_000

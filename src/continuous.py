@@ -1,4 +1,4 @@
-from random import random, normalvariate
+from random import random
 from typing import *
 import discrete as disc
 import math
@@ -18,8 +18,11 @@ def exponential(lambd: float) -> float:
   """
   return - math.log(1 - random()) / lambd
 
-def normal(mu: float, sigma: float) -> float:
 
+_NORMAL_MAGIC_CONST_A = 2 * math.exp(-1)
+_NORMAL_MAGIC_CONST_B = 4 * math.exp(-0.5) / math.sqrt(2)
+
+def normal(mu: float, sigma: float) -> float:
   """Distribución normal.
 
   Parametros
@@ -34,17 +37,15 @@ def normal(mu: float, sigma: float) -> float:
   float
     Valor entre -infinito e infinito.
   """
-  const = 4 * math.exp(-1) / 2.0
-
-  u = random()
-  v = 1 - random()
+  u, v = random(), 1 - random()
   X = (u - 0.5) / v
 
-  while const * X**2 > - math.log(v):
-    u = random()
-    v = 1 - random()
+  while _NORMAL_MAGIC_CONST_A * X**2 > -math.log(v):
+    u, v = random(), 1 - random()
     X = (u - 0.5) / v
-  return X * sigma + mu
+
+  return  _NORMAL_MAGIC_CONST_B * X * sigma + mu
+
 
 def composition_method(
   gens: List[Callable[[], float]],
@@ -74,6 +75,7 @@ def composition_method(
   i = disc.inverse_trans_arr(probs, list(range(n)))
   X_i = gens[i]
   return X_i()
+
 
 def accept_reject_method(
   Y_gen: Callable[[], float],
