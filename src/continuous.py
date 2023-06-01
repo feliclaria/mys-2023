@@ -1,4 +1,4 @@
-from random import random
+from random import random, normalvariate
 from typing import *
 import discrete as disc
 import math
@@ -17,6 +17,34 @@ def exponential(lambd: float) -> float:
     Valor entre 0 e infinito si `lambd > 0`, y entre infinito negativo y 0 si `lambd < 0`.
   """
   return - math.log(1 - random()) / lambd
+
+def normal(mu: float, sigma: float) -> float:
+
+  """Distribución normal.
+
+  Parametros
+  ----------
+  mu : float
+    Media deseada.
+  sigma : float
+    Desviación estándar deseada.
+
+  Retorna
+  -------
+  float
+    Valor entre -infinito e infinito.
+  """
+  const = 4 * math.exp(-1) / 2.0
+
+  u = random()
+  v = 1 - random()
+  X = (u - 0.5) / v
+
+  while const * X**2 > - math.log(v):
+    u = random()
+    v = 1 - random()
+    X = (u - 0.5) / v
+  return X * sigma + mu
 
 def composition_method(
   gens: List[Callable[[], float]],
