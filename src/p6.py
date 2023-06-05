@@ -2,6 +2,7 @@ from prettytable import PrettyTable
 from random import random
 from scipy.integrate import quad
 
+import simulate as sim
 import continuous as cont
 import math
 
@@ -27,7 +28,7 @@ def ex2i():
   n = 0
   theta_prev, theta, S_sqr = 0, 0, 0
 
-  while n < 100 or S_sqr * 10000 > n + 1:
+  while n < 100 or S_sqr * 10000.0 >= n + 1:
     n += 1
     theta_prev = theta
     theta += (g(1 - random()) - theta_prev) / (n+1)
@@ -42,7 +43,7 @@ def ex2ii():
   n = 0
   theta_prev, theta, S_sqr = 0, 0, 0
 
-  while n < 100 or S_sqr * 10000 > n + 1:
+  while n < 100 or S_sqr * 10000 >= n + 1:
     n += 1
     theta_prev = theta
     theta += (h(1 - random()) - theta_prev) / (n+1)
@@ -59,8 +60,70 @@ def ex2():
   table.add_row(['Monte carlo', theta_i, theta_ii])
   print(table)
 
+
+def ex3i():
+  g = lambda x: math.sin(x) / x
+  h = lambda y: math.pi * g(math.pi * (y+1))
+
+  sims = [1_000, 5_000, 7_000]
+  I_list = [sum(h(1-random()) for _ in range(n)) / n for n in sims]
+  S_sqr_list = [sum((h(1-random()) - I)**2 for _ in range(n)) / n for n, I in zip(sims, I_list)]
+  IC_list = [(I - 1.96 * math.sqrt(S_sqr/n), I + math.sqrt(S_sqr/n)) for n, I, S_sqr in zip(sims, I_list, S_sqr_list)]
+
+  results = list(zip(sims, I_list, S_sqr_list, IC_list))
+
+  n, theta_prev, theta, S_sqr = 0, 0, 0, 0
+  while n < 100 or n+1 <= 3_841_600 * S_sqr:
+    n += 1
+    theta_prev = theta
+    theta += (h(1-random()) - theta_prev) / (n+1)
+    S_sqr = S_sqr * (n-1) / n + (n+1) * (theta - theta_prev)**2
+  IC = theta - 1.96 * math.sqrt(S_sqr/n), theta + 1.96 * math.sqrt(S_sqr/n)
+
+  results.append((n, theta, S_sqr, IC))
+
+  table = PrettyTable(['Nro. sims.', 'I', 'S', 'IC(95%)'])
+  table.title = 'Ejercicio 3i'
+  for n, I, S_sqr, IC in results:
+    table.add_row([n, round(I, 4), round(math.sqrt(S_sqr), 4), tuple(map(lambda x: round(x, 4), IC))])
+
+  print(table)
+
+def ex3ii():
+  g = lambda x: 3 / (3 + x**4)
+  h = lambda y: 1 / y**2 * g((1-y) / y)
+
+  sims = [1_000, 5_000, 7_000]
+  I_list = [sum(h(1-random()) for _ in range(n)) / n for n in sims]
+  S_sqr_list = [sum((h(1-random()) - I)**2 for _ in range(n)) / n for n, I in zip(sims, I_list)]
+  IC_list = [(I - 1.96 * math.sqrt(S_sqr/n), I + math.sqrt(S_sqr/n)) for n, I, S_sqr in zip(sims, I_list, S_sqr_list)]
+
+  results = list(zip(sims, I_list, S_sqr_list, IC_list))
+
+  n, theta_prev, theta, S_sqr = 0, 0, 0, 0
+  while n < 100 or n+1 <= 3_841_600 * S_sqr:
+    n += 1
+    theta_prev = theta
+    theta += (h(1-random()) - theta_prev) / (n+1)
+    S_sqr = S_sqr * (n-1) / n + (n+1) * (theta - theta_prev)**2
+  IC = theta - 1.96 * math.sqrt(S_sqr/n), theta + 1.96 * math.sqrt(S_sqr/n)
+
+  results.append((n, theta, S_sqr, IC))
+
+  table = PrettyTable(['Nro. sims.', 'I', 'S', 'IC(95%)'])
+  table.title = 'Ejercicio 3ii'
+  for n, I, S_sqr, IC in results:
+    table.add_row([n, round(I, 4), round(math.sqrt(S_sqr), 4), tuple(map(lambda x: round(x, 4), IC))])
+
+  print(table)
+
+def ex3():
+  ex3i()
+  ex3ii()
+
+
 def main():
-  ex2()
+  ex3()
 
 if __name__ == '__main__':
   main()
