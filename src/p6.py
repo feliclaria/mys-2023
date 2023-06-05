@@ -122,8 +122,31 @@ def ex3():
   ex3ii()
 
 
+def ex4_gen_N():
+  N = 0
+  S = 0
+  while S <= 1:
+    N += 1
+    S += random()
+  return N
+
+def ex4():
+  n, e_prev, e, S_sqr = 0, 0, 0, 0
+  while n < 100 or n+1 <= 24_586.24 * S_sqr:
+    n += 1
+    e_prev = e
+    e += (ex4_gen_N() - e_prev) / (n+1)
+    S_sqr = S_sqr * (n-1) / n + (n+1) * (e - e_prev)**2
+
+  table = PrettyTable(['n', 'ê', 'S²(n)'])
+  table.title = 'Ejercicio 4'
+  table.add_row([n, e, S_sqr])
+  print(table)
+
+
 def main():
   ex3()
+  ex4()
 
 if __name__ == '__main__':
   main()
