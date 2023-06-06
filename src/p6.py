@@ -2,7 +2,6 @@ from prettytable import PrettyTable
 from random import random
 from scipy.integrate import quad
 
-import simulate as sim
 import continuous as cont
 import math
 
@@ -11,7 +10,7 @@ def ex1():
   n = 0
   E_prev, E, S_sqr = 0, 0, 0
 
-  while n < 100 or S_sqr * 10000 > n + 1:
+  while n < 100 or n < S_sqr * 100:
     n += 1
     E_prev = E
     E += (cont.normal(0, 1) - E_prev) / (n+1)
@@ -28,36 +27,37 @@ def ex2i():
   n = 0
   theta_prev, theta, S_sqr = 0, 0, 0
 
-  while n < 100 or S_sqr * 10000.0 >= n + 1:
+  while n < 100 or n < S_sqr * 10_000:
     n += 1
     theta_prev = theta
-    theta += (g(1 - random()) - theta_prev) / (n+1)
+    theta += (g(1-random()) - theta_prev) / (n+1)
     S_sqr = S_sqr * (n-1) / n + (n+1) * (theta - theta_prev)**2
 
-  return quad(g, 0, 1)[0], theta
+  return quad(g, 0, 1)[0], theta, n
 
 def ex2ii():
   g = lambda x: x**2 * math.exp(-x**2)
-  h = lambda y: 2 * g((1 - y) / y) / (y**2)
+  h = lambda y: 2 * g((1-y) / y) / (y**2)
 
   n = 0
   theta_prev, theta, S_sqr = 0, 0, 0
 
-  while n < 100 or S_sqr * 10000 >= n + 1:
+  while n < 100 or n < S_sqr * 10_000:
     n += 1
     theta_prev = theta
-    theta += (h(1 - random()) - theta_prev) / (n+1)
+    theta += (h(1-random()) - theta_prev) / (n+1)
     S_sqr = S_sqr * (n-1) / n + (n+1) * (theta - theta_prev)**2
 
-  return quad(h, 0, 1)[0], theta
+  return quad(h, 0, 1)[0], theta, n
 
 def ex2():
-  val_i, theta_i = ex2i()
-  val_ii, theta_ii = ex2ii()
+  val_i, theta_i, n_i = ex2i()
+  val_ii, theta_ii, n_ii = ex2ii()
 
   table = PrettyTable(['', 'Integral (i)', 'Integral (ii)'])
   table.add_row(['Aprox. numérica', val_i, val_ii])
   table.add_row(['Monte carlo', theta_i, theta_ii])
+  table.add_row(['Nro. sims.', n_i, n_ii])
   print(table)
 
 
@@ -73,7 +73,7 @@ def ex3i():
   results = list(zip(sims, I_list, S_sqr_list, IC_list))
 
   n, theta_prev, theta, S_sqr = 0, 0, 0, 0
-  while n < 100 or n+1 <= 3_841_600 * S_sqr:
+  while n < 100 or n < 3_841_600 * S_sqr:
     n += 1
     theta_prev = theta
     theta += (h(1-random()) - theta_prev) / (n+1)
@@ -101,7 +101,7 @@ def ex3ii():
   results = list(zip(sims, I_list, S_sqr_list, IC_list))
 
   n, theta_prev, theta, S_sqr = 0, 0, 0, 0
-  while n < 100 or n+1 <= 3_841_600 * S_sqr:
+  while n < 100 or n < 3_841_600 * S_sqr:
     n += 1
     theta_prev = theta
     theta += (h(1-random()) - theta_prev) / (n+1)
@@ -122,7 +122,7 @@ def ex3():
   ex3ii()
 
 
-def ex4_gen_N():
+def ex4_N():
   N = 0
   S = 0
   while S <= 1:
@@ -132,10 +132,10 @@ def ex4_gen_N():
 
 def ex4():
   n, e_prev, e, S_sqr = 0, 0, 0, 0
-  while n < 100 or n+1 <= 24_586.24 * S_sqr:
+  while n < 100 or n < 24_586.24 * S_sqr:
     n += 1
     e_prev = e
-    e += (ex4_gen_N() - e_prev) / (n+1)
+    e += (ex4_N() - e_prev) / (n+1)
     S_sqr = S_sqr * (n-1) / n + (n+1) * (e - e_prev)**2
 
   table = PrettyTable(['n', 'ê', 'S²(n)'])
@@ -145,8 +145,7 @@ def ex4():
 
 
 def main():
-  ex3()
-  ex4()
+  ex1()
 
 if __name__ == '__main__':
   main()
