@@ -144,8 +144,44 @@ def ex4():
   print(table)
 
 
+def ex6_X():
+  u = random() * 2 - 1
+  v = random() * 2 - 1
+  return u**2 + v**2 <= 1
+
+def ex6a():
+  n, p_prev, p = 0, 0, 0
+  while n < 100 or n <= p * (1-p) * 160_000:
+    n += 1
+    p_prev = p
+    p += (ex6_X() - p_prev) / n
+
+  pi =  4 * p
+  s = 4 * math.sqrt(p * (1-p) / n)
+  const = 7.84 * s
+  return n, round(pi, 4), round(s, 4), (round(pi - const, 4), round(pi + const, 4))
+
+def ex6b():
+  n, p_prev, p = 0, 0, 0
+  while n < 100 or n <= 11333.12 * p * (1-p):
+    n += 1
+    p_prev = p
+    p += (ex6_X() - p_prev) / n
+
+  pi =  4 * p
+  s = 4 * math.sqrt(p * (1-p) / n)
+  const = 7.84 * s
+  return n, round(pi, 4), round(s, 4), (round(pi - const, 4), round(pi + const, 4))
+
+def ex6():
+  table = PrettyTable(['Inciso', 'Nro. sims.', 'pi', 'S', 'IC(95%)'])
+  table.title = 'Ejercicio 6'
+  table.add_rows([['(a)', *ex6a()], ['(b)', *ex6b()]])
+  print(table)
+
+
 def main():
-  ex1()
+  ex6()
 
 if __name__ == '__main__':
   main()
