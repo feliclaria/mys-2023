@@ -6,12 +6,12 @@ import math
 
 
 def ex1():
-  prob = [0.25, 0.5, 0.25]
-  freq = [141, 291, 132]
+  probs = [0.25, 0.5, 0.25]
+  freqs = [141, 291, 132]
   sims = 10_000
 
-  pearson = pval.pearson(prob, freq)
-  sim = pval.simulate(sims, prob, freq)
+  pearson = pval.pearson(probs, freqs)
+  sim = pval.pearson_sim(sims, probs, freqs)
 
   table = PrettyTable(['', 'Pearson', f'{sims} sims.'])
   table.title = 'Ejercicio 1'
@@ -20,12 +20,12 @@ def ex1():
 
 
 def ex2():
-  prob = [1/6]*6
-  freq = [158, 172, 164, 181, 160, 165]
+  probs = [1/6]*6
+  freqs = [158, 172, 164, 181, 160, 165]
   sims = 10_000
 
-  pearson = pval.pearson(prob, freq)
-  sim = pval.simulate(sims, prob, freq)
+  pearson = pval.pearson(probs, freqs)
+  sim = pval.pearson_sim(sims, probs, freqs)
 
   table = PrettyTable(['', 'Pearson', f'{sims} sims.'])
   table.title = 'Ejercicio 2'
@@ -60,97 +60,47 @@ def ex4():
   print(table)
 
 
-# def ex5():
-#   sample = [6, 7, 3, 4, 7, 3, 7, 2, 6, 3, 7, 8, 2, 1, 3, 5, 8, 7]
-#   size = len(sample)
-#   n = 8
+def ex5_pearson():
+  sample = [6, 7, 3, 4, 7, 3, 7, 2, 6, 3, 7, 8, 2, 1, 3, 5, 8, 7]
+  mean = sum(sample) / len(sample)
 
-#   mean = sum(sample) / size
-#   p = mean * n
+  n = 8
+  p = mean / n
 
-#   counts = Counter(sample).most_common()
-#   counts.sort()
+  values = range(n+1)
+  probs, freqs = pval.stats_disc(sample, values, sp.binom(n, p).pmf)
 
-#   freq = (count for _, count in counts)
-#   prob = (sp.binom.pmf(k, n, p) for k in range(n+1))
+  return(pval.pearson_estimate(probs, freqs, 1))
 
-#   T = pval.statistic(prob, freq)
-#   p_val = 1 - sp.chi2.cdf(T, n-1-1)
-#   print(p_val)
+def ex5_sims():
+  sample = [6, 7, 3, 4, 7, 3, 7, 2, 6, 3, 7, 8, 2, 1, 3, 5, 8, 7]
+  size = len(sample)
+  mean = sum(sample) / size
 
-# def ex5p():
-#   sample = [6, 7, 3, 4, 7, 3, 7, 2, 6, 3, 7, 8, 2, 1, 3, 5, 8, 7]
-#   size = len(sample)
-#   n = 8
+  n = 8
+  p = mean / n
 
-#   mean = sum(sample) / size
-#   p = mean * n
+  values = range(n+1)
+  probs, freqs = pval.stats_disc(sample, values, sp.binom(n, p).pmf)
 
-#   counts = Counter(sample).most_common()
-#   counts.sort()
+  T = pval.statistic(probs, freqs)
 
-#   freq = (count for _, count in counts)
-#   prob = (sp.binom.pmf(k, n, p) for k in range(n+1))
+  sims = 10_000
+  successes = 0
+  for _ in range(sims):
+    sample = list(sp.binom(n, p).rvs(size=size))
+    mean = sum(sample) / size
 
-#   T = pval.statistic(prob, freq)
-#   successes = 0
+    p_sim = mean / n
+    probs, freqs = pval.stats_disc(sample, values, sp.binom(n, p_sim).pmf)
+    t = pval.statistic(probs, freqs)
+    successes += t >= T
 
-#   sims = 10_000
-#   for _ in range(sims):
-#     sample = sp.binom.rvs(n, p, size=size)
-
-#     mean = sum(sample) / size
-#     pp = mean * n
-
-#     counts = Counter(sample).most_common()
-#     counts.sort()
-
-#     freq = (count for _, count in counts)
-#     prob = (sp.binom.pmf(k, n, pp) for k in range(n+1))
-
-#     t = pval.statistic(prob, freq)
-#     successes += t >= T
-
-#   print(round(successes/sims, 4))
-
-# def sim_binomial(Nsim = 1000):
-#     freq = [0, 1, 2, 4, 1, 1, 2, 5, 2]
-#     m = sum(freq)
-#     n = 8
-#     p = sum(i * freq[i] for i in range(9)) / sum(freq) / n
-#     rv = sp.binom(n, p)
-#     T = sum((freq[i] - m * rv.pmf(i))**2 / (m * rv.pmf(i)) for i in range(9))
-#     pvalue = 1 - sp.chi2.cdf(T, 7)
-
-
-#     rv = sp.binom(8, 0.62)
-#     pvalue = 0
-#     for _ in range(Nsim):
-#         freq = [0] * 9
-
-#         # Genero 18 datos
-#         for j in range(18):
-#             freq[rv.rvs()] += 1
-
-#         # Calculo p_i(sim)
-#         p = sum(i * freq[i] for i in range(9)) / 18 / 8
-#         rv2 = sp.binom(8, p)
-
-#         # Calculo el estadistico
-#         t = sum((freq[i] - m * rv2.pmf(i))**2 / (m * rv2.pmf(i)) for i in range(9))
-#         if t >= T:
-#             pvalue += 1
-
-#     return pvalue / Nsim
-
+  p_val = successes / sims
+  return round(p_val, 10)
 
 
 def main():
   ex1()
-  ex2()
-  ex3()
-  ex4()
-
-
 if __name__ == '__main__':
   main()

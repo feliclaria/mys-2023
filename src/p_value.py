@@ -1,35 +1,46 @@
 import scipy.stats as sp
 
-def statistic(prob, freq):
-  size = sum(freq)
-  return sum((freq_i - size * prob_i)**2 / (size * prob_i)
-             for prob_i, freq_i in zip(prob, freq))
+def stats_disc(sample, values, pmf):
+  probs = [pmf(k) for k in values]
+  freqs = [sample.count(k) for k in values]
+  return probs, freqs
 
-def pearson(prob, freq):
-  k = len(freq)
-  T = statistic(prob, freq)
+def statistic(probs, freqs):
+  size = sum(freqs)
+  return sum((freq - size * prob)**2 / (size * prob)
+              for prob, freq in zip(probs, freqs))
+
+def pearson(probs, freqs, digits=4):
+  k = len(freqs)
+  T = statistic(probs, freqs)
   p_val = 1 - sp.chi2.cdf(T, k-1)
-  return round(p_val, 4)
+  return round(p_val, digits)
 
-def simulate(sims, prob, freq):
-  size = sum(freq)
-  T = statistic(prob, freq)
+def pearson_estimate(probs, freqs, m, digits=4):
+  k = len(freqs)
+  T = statistic(probs, freqs)
+  p_val = 1 - sp.chi2.cdf(T, k-m-1)
+  return round(p_val, digits)
+
+def pearson_sim(sims, probs, freqs, digits=4):
+  size = sum(freqs)
+  T = statistic(probs, freqs)
 
   successes = 0
   for _ in range(sims):
-    freq = []
-    prob_prev = prob
-    prob = []
-    for prov_prev_i in prob_prev:
-      freq_i = size - sum(freq)
-      prov_i = prov_prev_i / (1 - sum(prob))
-      prob.append(prov_prev_i)
-      freq.append(sp.binom.rvs(freq_i, prov_i))
-      t = statistic(prob, freq)
+    freqs = []
+    prev_probs = probs
+    probs = []
+    for pp in prev_probs:
+      n = size - sum(freqs)
+      p = pp / (1 - sum(probs))
+      probs.append(pp)
+      freqs.append(sp.binom.rvs(n, p))
+      t = statistic(probs, freqs)
     successes += t >= T
 
   p_val = successes / sims
-  return round(p_val, 4)
+  return round(p_val, digits)
 
 def statistic_ks(sample, cdf):
   size = len(sample)
@@ -37,7 +48,7 @@ def statistic_ks(sample, cdf):
   values = map(cdf, sample)
   return max(max((j+1)/size - val, val - j/size) for j, val in enumerate(values))
 
-def kolmogorov_smirnov(sims, sample, cdf):
+def kolmogorov_smirnov(sims, sample, cdf, digits=4):
   size = len(sample)
   D = statistic_ks(sample, cdf)
 
@@ -48,4 +59,4 @@ def kolmogorov_smirnov(sims, sample, cdf):
     successes += d >= D
 
   p_value = successes / sims
-  return round(p_value, 4)
+  return round(p_value, digits)
