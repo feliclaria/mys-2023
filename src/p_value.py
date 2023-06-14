@@ -22,17 +22,18 @@ def pearson_chi2(probs, freqs, params=0, digits=None):
 
   if digits is not None:
     p_value = round(p_value, digits)
-  return p_value
+  return t, p_value
 
 def pearson_chi2_estimate(sample, dist_estimator, support, params=0, digits=None):
   dist = dist_estimator(sample)
   probs, freqs = group_sample(sample, dist.pmf, support)
 
-  p_value = pearson_chi2(probs, freqs, params, digits)
+  t, p_value = pearson_chi2(probs, freqs, params, digits)
 
   if digits is not None:
+    t = round(t, digits)
     p_value = round(p_value, digits)
-  return p_value
+  return t, p_value
 
 def pearson_sims(sims, probs, freqs, digits=None):
   k = len(probs)
@@ -94,7 +95,7 @@ def kolmogorov_smirnov_sims(sims, sample, cdf, digits=None):
 
   if digits is not None:
     p_value = round(p_value, digits)
-  return p_value
+  return d, p_value
 
 def kolmogorov_smirnov_sims_estimate(sims, sample, dist_estimator, digits=None):
   size = len(sample)
@@ -111,4 +112,4 @@ def kolmogorov_smirnov_sims_estimate(sims, sample, dist_estimator, digits=None):
 
   if digits is not None:
     p_value = round(p_value, digits)
-  return p_value
+  return d, p_value
