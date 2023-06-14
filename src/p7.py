@@ -4,18 +4,7 @@ import scipy.stats as sp
 import numpy as np
 import p_value as pval
 
-
 SIMS = 10_000
-
-def sample_counts(sample, pmf, support):
-  counts = Counter(sample)
-  freqs = np.array([counts.get(k, 0) for k in support])
-  probs = np.array([pmf(k) for k in support])
-  return probs, freqs
-
-def rvs_gen(X):
-  rvs = lambda size: np.array([X() for _ in range(size)])
-  return rvs
 
 
 def ex1():
@@ -69,10 +58,10 @@ def ex4():
   print(table)
 
 
-def ex5_chi2(probs, freqs):
+def ex5_old_chi2(probs, freqs):
   return pval.pearson_chi2(probs, freqs, params=1, digits=10)
 
-def ex5_sims(sims, probs, freqs, dist, support):
+def ex5_old_sims(sims, probs, freqs, dist, support):
   size = np.sum(freqs)
   t = pval.pearson_statistic(probs, freqs)
 
@@ -83,13 +72,13 @@ def ex5_sims(sims, probs, freqs, dist, support):
     p_sim = np.mean(sample_sim) / 8
     dist_sim = sp.binom(8, p_sim)
 
-    probs_sim, freqs_sim = sample_counts(sample_sim, dist_sim.pmf, support)
+    probs_sim, freqs_sim = pval.group_sample(sample_sim, dist_sim.pmf, support)
     t_sim = pval.pearson_statistic(probs_sim, freqs_sim)
     successes += t <= t_sim
 
   return successes / sims
 
-def ex5():
+def ex5_old():
   sample = np.array([
     6, 7, 3, 4, 7, 3, 7, 2, 6,
     3, 7, 8, 2, 1, 3, 5, 8, 7
@@ -105,13 +94,32 @@ def ex5():
   probs = np.array([dist.pmf(k) for k in support])
   freqs = np.array([counts.get(k, 0) for k in support])
 
-  p_value_chi2 = ex5_chi2(probs, freqs)
-  p_value_sims = ex5_sims(SIMS, probs, freqs, dist, support)
+  p_value_chi2 = ex5_old_chi2(probs, freqs)
+  p_value_sims = ex5_old_sims(SIMS, probs, freqs, dist, support)
 
   table = PrettyTable(['', 'Pearson', f'{SIMS} sims.'])
   table.title = 'Ejercicio 5'
   table.add_row(['p-valor', p_value_chi2, p_value_sims])
   print(table)
+
+def ex5():
+  sample = np.array([
+    6, 7, 3, 4, 7, 3, 7, 2, 6,
+    3, 7, 8, 2, 1, 3, 5, 8, 7
+  ])
+
+  n = 8
+  support = range(n+1)
+  dist_estimator = lambda sample: sp.binom(n, np.mean(sample) / n)
+
+  p_value_chi2 = pval.pearson_chi2_from_sample(sample, dist_estimator, support, params=1, digits=10)
+  p_value_sims = pval.pearson_simulate_from_sample(SIMS, sample, dist_estimator, support, digits=10)
+
+  table = PrettyTable(['', 'Pearson', f'{SIMS} sims.'])
+  table.title = 'Ejercicio 5'
+  table.add_row(['p-valor', p_value_chi2, p_value_sims])
+  print(table)
+
 
 def ex6():
   probs = np.array([31, 22, 12, 10, 8, 6, 4, 4, 2, 1])
@@ -149,7 +157,8 @@ def ex7():
 
 
 def main():
-  ex7()
+  ex1()
+  ex2()
 
 if __name__ == '__main__':
   main()
