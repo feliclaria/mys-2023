@@ -60,7 +60,7 @@ def ex4():
     86.0, 133.0, 75.0, 22.0, 11.0, 144.0, 78.0,
     122.0, 8.0, 146.0, 33.0, 41.0, 99.0
   ]
-  cdf = lambda x: sp.expon.cdf(x, scale=50)
+  cdf = sp.expon(scale=50).cdf
   p_value_sims = pval.kolmogorov_smirnov_simulate(SIMS, sample, cdf)
 
   table = PrettyTable(['Nro. sims.', 'p-valor'])
@@ -113,9 +113,43 @@ def ex5():
   table.add_row(['p-valor', p_value_chi2, p_value_sims])
   print(table)
 
+def ex6():
+  probs = np.array([31, 22, 12, 10, 8, 6, 4, 4, 2, 1])
+  freqs = np.array([188, 138, 87, 65, 48, 32, 30, 34, 13, 2])
+
+  sample_table = PrettyTable(['Premio', 'Prob', 'Freq'])
+  sample_table.title = 'Ej. 6: Datos'
+  for i, (prob, freq) in enumerate(zip(probs, freqs)):
+    sample_table.add_row([i+1, f'{prob}%', freq])
+  print(sample_table)
+
+  probs = probs / 100
+
+  p_value_chi2 = pval.pearson_chi2(probs, freqs)
+  p_value_sims = pval.pearson_simulate(SIMS, probs, freqs)
+
+  results_table = PrettyTable(['Método', 'p-valor'])
+  results_table.title = 'Ej. 6: Resultados'
+  results_table.add_row(['Chi-cuadrado', p_value_chi2])
+  results_table.add_row([f'{SIMS} sims.', p_value_sims])
+  print(results_table)
+
+
+def ex7():
+  size = 30
+  dist = sp.expon
+  sample = dist.rvs(size=size)
+
+  p_value = pval.kolmogorov_smirnov_simulate(SIMS, sample, dist.cdf)
+
+  table = PrettyTable(['Método', 'p-valor'])
+  table.title = 'Ejercicio 7'
+  table.add_row([f'{SIMS} sims.', p_value])
+  print(table)
+
 
 def main():
-  ex5()
+  ex7()
 
 if __name__ == '__main__':
   main()
