@@ -23,7 +23,7 @@ def pearson_chi2(probs, freqs, params=0, digits=None):
     p_value = round(p_value, digits)
   return p_value
 
-def pearson_chi2_from_sample(sample, dist_estimator, support, params=0, digits=None):
+def pearson_chi2_estimate(sample, dist_estimator, support, params=0, digits=None):
   dist = dist_estimator(sample)
   probs, freqs = group_sample(sample, dist.pmf, support)
 
@@ -33,7 +33,7 @@ def pearson_chi2_from_sample(sample, dist_estimator, support, params=0, digits=N
     p_value = round(p_value, digits)
   return p_value
 
-def pearson_simulate(sims, probs, freqs, digits=None):
+def pearson_sims(sims, probs, freqs, digits=None):
   k = len(probs)
   size = np.sum(freqs)
   t = pearson_statistic(probs, freqs)
@@ -54,7 +54,7 @@ def pearson_simulate(sims, probs, freqs, digits=None):
     p_value = round(p_value, digits)
   return p_value
 
-def pearson_simulate_from_sample(sims, sample, dist_estimator, support, digits=None):
+def pearson_sims_estimate(sims, sample, dist_estimator, support, digits=None):
   size = len(sample)
   dist = dist_estimator(sample)
   probs_sim, freqs_sim = group_sample(sample, dist.pmf, support)
@@ -80,15 +80,31 @@ def kolmogorov_smirnov_statistic(sample, cdf):
   values = map(cdf, sample)
   return max(max((j+1)/size - val, val - j/size) for j, val in enumerate(values))
 
-def kolmogorov_smirnov_simulate(sims, sample, cdf, digits=None):
+def kolmogorov_smirnov_sims(sims, sample, cdf, digits=None):
   size = len(sample)
   d = kolmogorov_smirnov_statistic(sample, cdf)
 
   successes = 0
   for _ in range(sims):
     sample_sim = uniform.rvs(size=size)
-    sample_sim.sort()
     d_sim = kolmogorov_smirnov_statistic(sample_sim, uniform.cdf)
+    successes += d <= d_sim
+  p_value = successes / sims
+
+  if digits is not None:
+    p_value = round(p_value, digits)
+  return p_value
+
+def kolmogorov_smirnov_sims_estimate(sims, sample, dist_estimator, digits=None):
+  size = len(sample)
+  dist = dist_estimator(sample)
+  d = kolmogorov_smirnov_statistic(sample, dist.cdf)
+
+  successes = 0
+  for _ in range(sims):
+    sample_sim = dist.rvs(size=size)
+    dist_sim = dist_estimator(sample_sim)
+    d_sim = kolmogorov_smirnov_statistic(sample_sim, dist_sim.cdf)
     successes += d <= d_sim
   p_value = successes / sims
 
