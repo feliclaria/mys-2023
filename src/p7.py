@@ -1,8 +1,10 @@
 import scipy.stats as sp
 import numpy as np
 import p_value as pval
+import math
 
 from sys import argv
+from continuous import rt
 from tabulate import tabulate
 
 
@@ -103,7 +105,19 @@ def ex7():
 
 
 def ex8():
-  pass
+  sizes = [10, 20, 100, 1_000]
+  df = 11
+  normal_cdf = lambda x: math.erf(x / math.sqrt(2.0)) / 2.0 + 0.5
+
+  results = [['size', 'd', 'p-value']]
+
+  for size in sizes:
+    sample = [rt(df) for _ in range(size)]
+    d = pval.kolmogorov_smirnov_statistic(sample, normal_cdf)
+    p_value = pval.kolmogorov_smirnov_sims(SIMS, sample, normal_cdf)
+    results.append([size, d, p_value])
+
+  print(tabulate(results, headers='firstrow'))
 
 
 def ex9():

@@ -1,6 +1,7 @@
 import numpy as np
+from random import random
+from scipy.stats import chi2, binom
 from collections import Counter
-from scipy.stats import uniform, chi2, binom
 
 
 def group_sample(sample, pmf, support):
@@ -44,7 +45,7 @@ def pearson_sims(sims, probs, freqs, digits=None):
     for j in range(k):
       n = size - np.sum(freqs_sim)
       p = probs[j] / (1 - np.sum(probs[:j]))
-      freqs_sim[j] = binom(n=n, p=p).rvs()
+      freqs_sim[j] = binom(n, p).rvs()
 
     t_sim = pearson_statistic(probs, freqs_sim)
     successes += t <= t_sim
@@ -86,8 +87,8 @@ def kolmogorov_smirnov_sims(sims, sample, cdf, digits=None):
 
   successes = 0
   for _ in range(sims):
-    sample_sim = uniform.rvs(size=size)
-    d_sim = kolmogorov_smirnov_statistic(sample_sim, uniform.cdf)
+    sample_sim = [random() for _ in range(size)]
+    d_sim = kolmogorov_smirnov_statistic(sample_sim, lambda x: x)
     successes += d <= d_sim
   p_value = successes / sims
 
