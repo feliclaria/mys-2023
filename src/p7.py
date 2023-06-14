@@ -1,10 +1,25 @@
-from prettytable import PrettyTable
-from collections import Counter
 import scipy.stats as sp
 import numpy as np
 import p_value as pval
 
+from sys import argv
+from tabulate import tabulate
+
+
 SIMS = 10_000
+
+
+def tabulate_pearson(p_value_chi2, p_value_sims):
+  table = [
+      ['method', 'p-value'],
+      ['chi-squared', p_value_chi2],
+      [f'{SIMS} sims', p_value_sims]
+    ]
+  return tabulate(table, headers='firstrow')
+
+def tabulate_kolmogorov_smirnov(p_value_sims):
+  table = [[f'{SIMS} sims', p_value_sims]]
+  return tabulate(table)
 
 
 def ex1():
@@ -12,12 +27,8 @@ def ex1():
   freqs = np.array([141, 291, 132])
 
   p_value_chi2 = pval.pearson_chi2(probs, freqs)
-  p_value_binom = pval.pearson_simulate(SIMS, probs, freqs)
-
-  table = PrettyTable(['', 'Chi cuadrado', f'{SIMS} sims.'])
-  table.title = 'Ejercicio 1'
-  table.add_row(['p-valor', p_value_chi2, p_value_binom])
-  print(table)
+  p_value_sims = pval.pearson_simulate(SIMS, probs, freqs)
+  print(tabulate_pearson(p_value_chi2, p_value_sims))
 
 
 def ex2():
@@ -26,22 +37,15 @@ def ex2():
 
   p_value_chi2 = pval.pearson_chi2(probs, freqs)
   p_value_sims = pval.pearson_simulate(SIMS, probs, freqs)
-
-  table = PrettyTable(['', 'Chi cuadrado', f'{SIMS} sims.'])
-  table.title = 'Ejercicio 2'
-  table.add_row(['p-valor', p_value_chi2, p_value_sims])
-  print(table)
+  print(tabulate_pearson(p_value_chi2, p_value_sims))
 
 
 def ex3():
   sample = [0.12, 0.18, 0.06, 0.33, 0.72, 0.83, 0.36, 0.27, 0.77, 0.74]
   cdf = sp.uniform.cdf
-  p_value_sims = pval.kolmogorov_smirnov_simulate(SIMS, sample, cdf)
 
-  table = PrettyTable(['Nro. sims.', 'p-valor'])
-  table.title = 'Ejercicio 3'
-  table.add_row([SIMS, p_value_sims])
-  print(table)
+  p_value_sims = pval.kolmogorov_smirnov_simulate(SIMS, sample, cdf)
+  print(tabulate_kolmogorov_smirnov(p_value_sims))
 
 
 def ex4():
@@ -50,57 +54,10 @@ def ex4():
     122.0, 8.0, 146.0, 33.0, 41.0, 99.0
   ]
   cdf = sp.expon(scale=50).cdf
+
   p_value_sims = pval.kolmogorov_smirnov_simulate(SIMS, sample, cdf)
+  print(tabulate_kolmogorov_smirnov(p_value_sims))
 
-  table = PrettyTable(['Nro. sims.', 'p-valor'])
-  table.title = 'Ejercicio 4'
-  table.add_row([SIMS, p_value_sims])
-  print(table)
-
-
-def ex5_old_chi2(probs, freqs):
-  return pval.pearson_chi2(probs, freqs, params=1, digits=10)
-
-def ex5_old_sims(sims, probs, freqs, dist, support):
-  size = np.sum(freqs)
-  t = pval.pearson_statistic(probs, freqs)
-
-  successes = 0
-  for _ in range(sims):
-    sample_sim = dist.rvs(size)
-
-    p_sim = np.mean(sample_sim) / 8
-    dist_sim = sp.binom(8, p_sim)
-
-    probs_sim, freqs_sim = pval.group_sample(sample_sim, dist_sim.pmf, support)
-    t_sim = pval.pearson_statistic(probs_sim, freqs_sim)
-    successes += t <= t_sim
-
-  return successes / sims
-
-def ex5_old():
-  sample = np.array([
-    6, 7, 3, 4, 7, 3, 7, 2, 6,
-    3, 7, 8, 2, 1, 3, 5, 8, 7
-  ])
-
-  n = 8
-  p =  np.mean(sample) / n
-  dist = sp.binom(n, p)
-
-  support = range(n+1)
-  counts = Counter(sample)
-
-  probs = np.array([dist.pmf(k) for k in support])
-  freqs = np.array([counts.get(k, 0) for k in support])
-
-  p_value_chi2 = ex5_old_chi2(probs, freqs)
-  p_value_sims = ex5_old_sims(SIMS, probs, freqs, dist, support)
-
-  table = PrettyTable(['', 'Pearson', f'{SIMS} sims.'])
-  table.title = 'Ejercicio 5'
-  table.add_row(['p-valor', p_value_chi2, p_value_sims])
-  print(table)
 
 def ex5():
   sample = np.array([
@@ -114,33 +71,24 @@ def ex5():
 
   p_value_chi2 = pval.pearson_chi2_from_sample(sample, dist_estimator, support, params=1, digits=10)
   p_value_sims = pval.pearson_simulate_from_sample(SIMS, sample, dist_estimator, support, digits=10)
-
-  table = PrettyTable(['', 'Pearson', f'{SIMS} sims.'])
-  table.title = 'Ejercicio 5'
-  table.add_row(['p-valor', p_value_chi2, p_value_sims])
-  print(table)
+  print(tabulate_pearson(p_value_chi2, p_value_sims))
 
 
 def ex6():
   probs = np.array([31, 22, 12, 10, 8, 6, 4, 4, 2, 1])
   freqs = np.array([188, 138, 87, 65, 48, 32, 30, 34, 13, 2])
 
-  sample_table = PrettyTable(['Premio', 'Prob', 'Freq'])
-  sample_table.title = 'Ej. 6: Datos'
+  data_table = [['prize', 'prob', 'freq']]
   for i, (prob, freq) in enumerate(zip(probs, freqs)):
-    sample_table.add_row([i+1, f'{prob}%', freq])
-  print(sample_table)
+    data_table.append([i+1, f'{prob}%', freq])
+  print(tabulate(data_table, headers='firstrow', colalign=('center', 'center')))
+  print()
 
   probs = probs / 100
 
   p_value_chi2 = pval.pearson_chi2(probs, freqs)
   p_value_sims = pval.pearson_simulate(SIMS, probs, freqs)
-
-  results_table = PrettyTable(['Método', 'p-valor'])
-  results_table.title = 'Ej. 6: Resultados'
-  results_table.add_row(['Chi-cuadrado', p_value_chi2])
-  results_table.add_row([f'{SIMS} sims.', p_value_sims])
-  print(results_table)
+  print(tabulate_pearson(p_value_chi2, p_value_sims))
 
 
 def ex7():
@@ -148,17 +96,22 @@ def ex7():
   dist = sp.expon
   sample = dist.rvs(size=size)
 
-  p_value = pval.kolmogorov_smirnov_simulate(SIMS, sample, dist.cdf)
-
-  table = PrettyTable(['Método', 'p-valor'])
-  table.title = 'Ejercicio 7'
-  table.add_row([f'{SIMS} sims.', p_value])
-  print(table)
+  p_value_sims = pval.kolmogorov_smirnov_simulate(SIMS, sample, dist.cdf)
+  print(tabulate_kolmogorov_smirnov(p_value_sims))
 
 
-def main():
-  ex1()
-  ex2()
+def main(argv):
+  k = int(argv[1])
+  funs = [ex1, ex2, ex3, ex4, ex5, ex6, ex7]
+
+  if k == 0:
+    for i, f in enumerate(funs):
+      print()
+      print(f'+--- (Ex. {i+1}) ---+')
+      f()
+  else:
+    print(f'+--- (Ex. {k}) ---+')
+    funs[k-1]()
 
 if __name__ == '__main__':
-  main()
+  main(argv)
