@@ -1,145 +1,129 @@
-from prettytable import PrettyTable
+from tabulate import tabulate
+from continuous import normal
 from random import random
 from scipy.integrate import quad
+from numpy import inf
+from sys import argv
 
-import numpy as np
-import continuous as cont
+import estimate
 import math
 
 
 def ex1():
-  n = 1
-  mean = cont.normal(0, 1)
-  mean_prev, S_sqr = 0, 0
+  mean, S_sqr, n = estimate.mean(0.1, normal, 0, 1)
+  table = [['size', 'mean', 'variance'], [n, mean, S_sqr]]
+  print(tabulate(table, headers='firstrow'))
 
-  while n < 100 or n <= S_sqr * 100:
-    n += 1
-    mean_prev = mean
-    mean += (cont.normal(0, 1) - mean_prev) / n
-    S_sqr = S_sqr * (n-2) / (n-1) + n * (mean - mean_prev)**2
-
-  table = PrettyTable(['Nro. sims.', 'Media muestral', 'Varianza muestral'])
-  table.title = 'Ejercicio 1'
-  table.add_row([n, mean, S_sqr])
-  print(table)
-
-
-def ex2_monte_carlo(h):
-  n = 1
-  theta = h(1-random())
-  theta_prev, S_sqr = 0, 0
-
-  while n < 100 or n <= S_sqr * 10_000:
-    n += 1
-    theta_prev = theta
-    theta += (h(1-random()) - theta_prev) / n
-    S_sqr = S_sqr * (n-2) / (n-1) + n * (theta - theta_prev)**2
-
-  return n, theta
-
-def ex2i():
-  g = lambda x: math.exp(x) / math.sqrt(2 * x)
-  n, theta = ex2_monte_carlo(g)
-  value, _ = quad(g, 0, 1)
-  return n, theta, value
-
-def ex2ii():
-  g = lambda x: x**2 * math.exp(-x**2)
-  h = lambda y: 2 * g((1-y) / y) / (y**2)
-  n, theta = ex2_monte_carlo(h)
-  value, _ = quad(g, -np.inf, np.inf)
-  return n, theta, value
 
 def ex2():
-  table = PrettyTable(['Integral', 'Nro. sims.', 'Media muestral', 'Valor aprox.'])
-  table.title = 'Ejercicio 2'
-  table.add_row(['(i)', *ex2i()])
-  table.add_row(['(ii)', *ex2ii()])
-  print(table)
+  g_i = lambda x: math.exp(x) / math.sqrt(2*x)
+  g_ii = lambda x: 2 * x**2 * math.exp(-x**2)
+
+  mean_i, _, n_i = estimate.integral_0_to_1(0.01, g_i)
+  mean_ii, _, n_ii = estimate.integral_0_to_inf(0.01, g_ii)
+
+  I_i, _ = quad(g_i, 0, 1)
+  I_ii, _ = quad(g_ii, 0, inf)
+
+  table = [
+    ['integral', 'sims.', 'I', 'approx.'],
+    ['(i)', n_i, mean_i, I_i],
+    ['(ii)', n_ii, mean_ii, I_ii]
+  ]
+  print(tabulate(table, headers='firstrow', stralign='center'))
 
 
 def ex3_monte_carlo(h):
   sims = [1_000, 5_000, 7_000]
-  results = []
+  results = [['sims.', 'I', 'S', 'CI(95%)']]
+
+  L = 0.001
+  z_alpha_2 = 1.96
+  tol_sqr = (L / (2*z_alpha_2))**2
 
   n = 1
   theta = h(1-random())
   theta_prev, S_sqr = 0, 0
 
-  while n < 100 or n <= 3_841_600 * S_sqr:
+  while n < 100 or n <= S_sqr / tol_sqr:
     if n in sims:
       const = 1.96 * math.sqrt(S_sqr/n)
-      results.append((n, round(theta, 4), round(math.sqrt(S_sqr), 4),
-                      (round(theta - const, 4), round(theta + const, 4))
-                      ))
+      results.append([n, theta, math.sqrt(S_sqr), (
+        round(theta - const, 4),
+        round(theta + const, 4)
+      )])
+
     n += 1
     theta_prev = theta
     theta += (h(1-random()) - theta_prev) / n
     S_sqr = S_sqr * (n-2) / (n-1) + n * (theta - theta_prev)**2
 
   const = 1.96 * math.sqrt(S_sqr/n)
-  results.append((n, round(theta, 4), round(math.sqrt(S_sqr), 4),
-                  (round(theta - const, 4), round(theta + const, 4))
-                  ))
+  results.append([n, theta, math.sqrt(S_sqr), (
+    round(theta - const, 4),
+    round(theta + const, 4)
+  )])
   return results
 
-def ex3i():
-  g = lambda x: math.sin(x) / x
-  h = lambda y: math.pi * g(math.pi * (y+1))
-
-  table = PrettyTable(['Nro. sims.', 'I', 'S', 'IC(95%)'])
-  table.title = 'Ejercicio 3i'
-  table.add_rows(ex3_monte_carlo(h))
-  print(table)
-
-def ex3ii():
-  g = lambda x: 3 / (3 + x**4)
-  h = lambda y: 1 / y**2 * g((1-y) / y)
-
-  table = PrettyTable(['Nro. sims.', 'I', 'S', 'IC(95%)'])
-  table.title = 'Ejercicio 3ii'
-  table.add_rows(ex3_monte_carlo(h))
-  print(table)
-
 def ex3():
-  ex3i()
-  ex3ii()
+  g_i = lambda x: math.sin(x) / x
+  h_i = lambda y: math.pi * g_i(math.pi * (y+1))
+  results_i = ex3_monte_carlo(h_i)
+
+  print(tabulate([[f'(3.i)']], headers='firstrow'))
+  print(tabulate(results_i, headers='firstrow', stralign='center'))
+
+  print()
+
+  g_ii = lambda x: 3 / (3 + x**4)
+  h_ii = lambda y: 1 / y**2 * g_ii((1-y) / y)
+  results_ii = ex3_monte_carlo(h_ii)
+
+  print(tabulate([[f'(3.ii)']], headers='firstrow'))
+  print(tabulate(results_ii, headers='firstrow', stralign='center'))
 
 
 def ex4_N():
-  N, S = 0, 0
-  while S <= 1:
-    N += 1
-    S += random()
-  return N
+  n, s = 0, 0
+  while s <= 1:
+    n += 1
+    s += random()
+  return n
 
 def ex4():
+  table = [['sims.', 'e', 'S', 'CI(95%)']]
+
+  L = 0.025
+  z_alpha_2 = 1.96
+  tol_sqr = (L / (2*z_alpha_2))**2
+
   n = 1
-  e = ex4_N()
-  e_prev, S_sqr = 0, 0
+  theta = ex4_N()
+  theta_prev, S_sqr = 0, 0
 
-  results = []
-
-  while n < 100 or n <= 24_586.24 * S_sqr:
+  while n < 100 or n <= S_sqr / tol_sqr:
     if n == 1_000:
       const = 1.96 * math.sqrt(S_sqr/n)
-      results.append((n, round(e, 4), round(math.sqrt(S_sqr/n), 4),
-                      (round(e - const, 4), round(e + const, 4))
-                      ))
+      table.append([n, theta, math.sqrt(S_sqr), (
+        round(theta - const, 4),
+        round(theta + const, 4)
+      )])
+
     n += 1
-    e_prev = e
-    e += (ex4_N() - e_prev) / n
-    S_sqr = S_sqr * (n-2) / (n-1) + n * (e - e_prev)**2
+    theta_prev = theta
+    theta += (ex4_N() - theta_prev) / n
+    S_sqr = S_sqr * (n-2) / (n-1) + n * (theta - theta_prev)**2
 
   const = 1.96 * math.sqrt(S_sqr/n)
-  results.append((n, round(e, 4), round(math.sqrt(S_sqr/n), 4),
-                  (round(e - const, 4), round(e + const, 4))
-                  ))
+  table.append([n, theta, math.sqrt(S_sqr), (
+    round(theta - const, 4),
+    round(theta + const, 4)
+  )])
+  print(tabulate(table, headers='firstrow', stralign='center'))
 
-  table = PrettyTable(['Nro. sims', 'e', 'S', 'IC(95%)'])
-  table.title = 'Ejercicio 4'
-  table.add_rows(results)
-  print(table)
+
+def ex5():
+  print('---')
 
 
 def ex6_X():
@@ -147,43 +131,43 @@ def ex6_X():
   v = random() * 2 - 1
   return u**2 + v**2 <= 1
 
-def ex6a():
-  n, p_prev, p = 0, 0, 0
-  while n < 100 or n <= p * (1-p) * 160_000:
-    n += 1
-    p_prev = p
-    p += (ex6_X() - p_prev) / n
-
-  pi =  4 * p
-  s = 4 * math.sqrt(p * (1-p) / n)
-  const = 7.84 * s
-  return n, round(pi, 4), round(s, 4), (round(pi - const, 4), round(pi + const, 4))
-
-def ex6b():
-  n, p, p_prev = 0, 0, 0
-  while n < 100 or n <= 11333.12 * p * (1-p):
-    n += 1
-    p_prev = p
-    p += (ex6_X() - p_prev) / n
-
-  pi =  4 * p
-  s = 4 * math.sqrt(p * (1-p) / n)
-  const = 7.84 * s
-  return n, round(pi, 4), round(s, 4), (round(pi - const, 4), round(pi + const, 4))
-
 def ex6():
-  table = PrettyTable(['Inciso', 'Nro. sims.', 'pi', 'S', 'IC(95%)'])
-  table.title = 'Ejercicio 6'
-  table.add_rows([['(a)', *ex6a()], ['(b)', *ex6b()]])
-  print(table)
+  scale = 4
+
+  pi_i, var_i, n_i = estimate.proportion(0.01, ex6_X, scale=scale)
+  interval_i = (
+    round(pi_i - math.sqrt(var_i/n_i), 4),
+    round(pi_i + math.sqrt(var_i/n_i), 4)
+  )
+
+  pi_ii, var_ii, n_ii = estimate.proportion_confidence_int(1.96, 0.1, ex6_X, scale=scale)
+  interval_ii = (
+    round(pi_ii - math.sqrt(var_ii/n_ii), 4),
+    round(pi_ii + math.sqrt(var_ii/n_ii), 4)
+  )
+
+  table = [
+    ['ex.', 'sims.', 'pi', 'var.', 'CI(95%)'],
+    ['(a)', n_i, pi_i, var_i, interval_i],
+    ['(b)', n_ii, pi_ii, var_ii, interval_ii]
+  ]
+  print(tabulate(table, headers='firstrow', stralign='center'))
 
 
-def main():
-  ex1()
-  ex2()
-  ex3()
-  ex4()
-  ex6()
+def ex(k, fun):
+  print()
+  print(tabulate([[f'(Ex. {k})']]))
+  print()
+  fun()
+  print()
+
+def main(argv):
+  k = int(argv[1])
+  funs = [ex1, ex2, ex3, ex4, ex5, ex6]
+
+  if k == 0:
+    for i, fun in enumerate(funs): ex(i+1, fun)
+  else: ex(k, funs[k-1])
 
 if __name__ == '__main__':
-  main()
+  main(argv)
