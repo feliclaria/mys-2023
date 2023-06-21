@@ -47,6 +47,23 @@ def normal(mu: float, sigma: float) -> float:
   return  _NORMAL_MAGIC_CONST_B * X * sigma + mu
 
 
+def rt(df: int) -> float:
+  """Distribución t-student.
+
+  Parametros
+  ----------
+  df : int
+    Grados de libertad.
+
+  Retorna
+  -------
+  result : float
+  """
+  x = gauss(0.0, 1.0)
+  y = 2.0 * gammavariate(0.5 * df, 2.0)
+  return x / (math.sqrt(y/df))
+
+
 def composition_method(
   gens: List[Callable[[], float]],
   probs: List[float]
@@ -107,19 +124,3 @@ def accept_reject_method(
   x = Y_gen()
   while random() >= f(x) / (c * g(x)): x = Y_gen()
   return x
-
-def rt(df: int) -> float:
-  """Distribución t-student.
-
-  Parametros
-  ----------
-  df : int
-    Grados de libertad.
-
-  Retorna
-  -------
-  result : float
-  """
-  x = gauss(0.0, 1.0)
-  y = 2.0 * gammavariate(0.5 * df, 2.0)
-  return x / (math.sqrt(y/df))

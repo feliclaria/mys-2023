@@ -108,7 +108,7 @@ def ex4():
   probs_X = [0.11, 0.14, 0.09, 0.08, 0.12, 0.10, 0.09, 0.07, 0.11, 0.09]
   values_X = list(i for i in range(1,11))
 
-  Y = lambda: disc.randint(10) - 1
+  Y = lambda: disc.randint(9, 0)
   probs_Y = [1/10 for _ in range(10)]
 
   """
@@ -247,7 +247,7 @@ def ex8b():
   k = 10
   lambd = 0.7
 
-  Y = lambda: disc.randint(k+1)-1
+  Y = lambda: disc.randint(k+1, 0)
 
   pmf_Y = lambda _: 1/(k+1)
   values_Y = range(k+1)

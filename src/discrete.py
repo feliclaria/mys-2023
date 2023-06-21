@@ -3,11 +3,11 @@ from functools import reduce
 from operator import iconcat
 import math
 
-def randint(N):
+def randint(b, a=1):
   """
-  Una variable aleatoria discreta con distribución uniforme.
+  Una variable aleatoria discreta con distribución uniforme entre `a` y `b`.
   """
-  return int(N * random()) + 1
+  return int((b-a+1) * random()) + a
 
 def binomial(n, p):
   """

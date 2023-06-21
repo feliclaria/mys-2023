@@ -1,9 +1,11 @@
+from discrete import randint
 from random import random
 from simulate import mean
 from tabulate import tabulate
 from time import time
 from sys import argv
 
+import poisson
 import continuous as cont
 import numpy as np
 import math
@@ -24,9 +26,6 @@ def ex1c():
   u = random()
   if u < 0.0625: return math.log(2) + math.log(1 - u) / 4
   else: return 4 * u - 0.25
-
-def ex1():
-  print('---')
 
 
 def pareto(a):
@@ -325,29 +324,55 @@ def ex9():
   print(tabulate(table, headers='firstrow'))
 
 
-def ex10():
-  print('---')
-
-
-def ex11():
-  print('---')
-
-
-def ex12():
-  print('---')
-
-
-def ex13():
-  print('---')
-
-
 def ex14():
-  print('---')
+  lambd, t = 5, 1
+
+  buses, times = poisson.homogeneous(lambd, t)
+  capacities = [randint(40, 20) for _ in range(buses)]
+
+  data_table = [['bus', 'capacity', 'time of arrival']]
+  for capacity, time in zip(capacities, times):
+    data_table.append([capacity, time])
+  print(tabulate(data_table, headers='firstrow', showindex=range(1, buses+1)))
+
+  print(f'\ntotal passengers: {sum(capacities)}')
 
 
-def ex15():
-  print('---')
+def ex15a(T):
+  lambd_t = lambda t: 3 + 4 / (t+1) if 0 <= t <= 3 else 0
+  lambd = 7 # at t = 0
+  return poisson.inhomogeneous(lambd, lambd_t, T)
 
+def ex15a_improved(T):
+  interv = [1, 2, 3]
+  lambd = [7, 5, 13/3]
+  return poisson.inhomogeneous_improved(lambd, interv, T)
+
+def ex15b(T):
+  lambd_t = lambda t: (t - 2)**2 - 5 * t + 17 if 0 <= t <= 5 else 0
+  lambd = 21 # at t = 0
+  return poisson.inhomogeneous(lambd, lambd_t, T)
+
+def ex15b_improved(T):
+  interv = [2, 4, 5]
+  lambd = [21, 7, 1]
+  return poisson.inhomogeneous_improved(lambd, interv, T)
+
+def ex15c(T):
+  def lambd_t(t):
+    if 2 <= t <= 3: return t/2 - 1
+    if 3 <= t <= 6: return 1 - t/6
+    return 0
+  lambd = 1/2 # at t = 3
+  return poisson.inhomogeneous(lambd, lambd_t, T)
+
+def ex15c_improved(T):
+  interv = [3, 4, 5, 6]
+  lambd = [1/2, 1/2, 1/3, 2/6]
+  return poisson.inhomogeneous_improved(lambd, interv, T)
+
+def exNone():
+  pass
 
 def ex(k, fun):
   print()
@@ -358,14 +383,21 @@ def ex(k, fun):
 
 def main(argv):
   k = int(argv[1])
-  funs = [
-    ex1, ex2, ex3, ex4, ex5, ex6, ex7, ex8,
-    ex9, ex10, ex11, ex12, ex13, ex14, ex15
-  ]
+  funs = {
+    '2': ex2,
+    '3': ex3,
+    '4': ex4,
+    '5': ex5,
+    '6': ex6,
+    '7': ex7,
+    '8': ex8,
+    '9': ex9,
+    '14': ex14,
+  }
 
   if k == 0:
-    for i, fun in enumerate(funs): ex(i+1, fun)
-  else: ex(k, funs[k-1])
+    for key, fun in funs.items(): ex(int(key), fun)
+  else: ex(k, funs.get(str(k), exNone))
 
 if __name__ == '__main__':
   main(argv)
