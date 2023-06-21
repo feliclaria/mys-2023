@@ -2,42 +2,42 @@ from random import random
 from discrete import randint
 import math
 
-def success_prob(sims, random_var, is_success):
+def success_rate(sims, X, is_success, *X_params):
   """
   Probabilidad de éxito de una variable aleatoria.
   """
-  return sum(is_success(random_var()) for _ in range(sims)) / sims
+  return sum(is_success(X()) for _ in range(sims)) / sims
 
-def expected_value(sims, random_var):
+def mean(sims, X, *X_params):
   """
   Valor esperado de una variable aleatoria.
   """
-  return sum(random_var() for _ in range(sims)) / sims
+  return sum(X(*X_params) for _ in range(sims)) / sims
 
-def variance(sims, random_var, expected_val):
+def var(sims, X, mean):
   """
   Varianza de una variable aleatoria.
   """
-  return expected_value(sims, lambda: (random_var() - expected_val)**2)
+  return mean(sims, lambda: (X() - mean)**2)
 
-def std_deviation(sims, random_var, expected_val):
+def std_dev(sims, X, mean):
   """
   Desviación estándar de una variable aleatoria.
   """
-  return math.sqrt(variance(sims, random_var, expected_val))
+  return math.sqrt(var(sims, X, mean))
 
-def monte_carlo_cont(sims, fun):
+def monte_carlo_cont(sims, g):
   """
   Aproximación de la integral `\int_{0}^{1} fun(x) dx` usando el método de
   Monte Carlo.
 
   """
-  return sum(fun(random()) for _ in range(sims)) / sims
+  return sum(g(random()) for _ in range(sims)) / sims
 
-def monte_carlo_disc(sims, N, fun):
+def monte_carlo_disc(sims, N, g):
   """
   Aproximación de la suma `\sum_{k=1}^{N} fun(k)` usando el método de
   Monte Carlo.
   """
-  return sum(N * fun(randint(N)) for _ in range(sims)) / sims
+  return sum(N * g(randint(N)) for _ in range(sims)) / sims
 

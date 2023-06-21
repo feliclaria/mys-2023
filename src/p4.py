@@ -49,10 +49,10 @@ def ex1_is_success_ii(cards, r=10):
   return is_success
 
 def ex1():
-  results_1a_i = [sim.success_prob(n, ex1_shuffle_cards, ex1_is_success_i) for n in iters]
-  results_1a_ii = [sim.success_prob(n, ex1_shuffle_cards, ex1_is_success_ii) for n in iters]
-  expected_vals = [sim.expected_value(n, ex1_random_var) for n in iters]
-  variances = [sim.variance(iters[i], ex1_random_var, expected_vals[i]) for i in range(len(iters))]
+  results_1a_i = [sim.success_rate(n, ex1_shuffle_cards, ex1_is_success_i) for n in iters]
+  results_1a_ii = [sim.success_rate(n, ex1_shuffle_cards, ex1_is_success_ii) for n in iters]
+  expected_vals = [sim.mean(n, ex1_random_var) for n in iters]
+  variances = [sim.var(iters[i], ex1_random_var, expected_vals[i]) for i in range(len(iters))]
 
   print(f'Iteraciones: \t{iters}')
   print(f'Ej. 1a.i: \t{results_1a_i}')
@@ -92,10 +92,10 @@ def ex3_random_var():
   return N
 
 def ex3():
-  expected_vals = [sim.expected_value(n, ex3_random_var) for n in iters]
-  std_deviations = [sim.std_deviation(iters[i], ex3_random_var, expected_vals[i]) for i in range(len(iters))]
-  is_success_i = [sim.success_prob(n, ex3_random_var, lambda N: N >= 15) for n in iters]
-  is_success_ii = [sim.success_prob(n, ex3_random_var, lambda N: N <= 9) for n in iters]
+  expected_vals = [sim.mean(n, ex3_random_var) for n in iters]
+  std_deviations = [sim.std_dev(iters[i], ex3_random_var, expected_vals[i]) for i in range(len(iters))]
+  is_success_i = [sim.success_rate(n, ex3_random_var, lambda N: N >= 15) for n in iters]
+  is_success_ii = [sim.success_rate(n, ex3_random_var, lambda N: N <= 9) for n in iters]
 
   print(f'Iteraciones: \t\t{iters}')
   print(f'Esperanza: \t\t{expected_vals}')
@@ -232,8 +232,8 @@ def ex7():
   lambd = 0.7
 
   is_success = lambda Y: Y > 2
-  prob = sim.success_prob(n, lambda: disc.poisson(lambd), is_success)
-  prob_optimized = sim.success_prob(n, lambda: disc.poisson_fast(lambd), is_success)
+  prob = sim.success_rate(n, lambda: disc.poisson(lambd), is_success)
+  prob_optimized = sim.success_rate(n, lambda: disc.poisson_fast(lambd), is_success)
 
   print(f'P[Y > 2] con transformada inversa: \t\t{prob}')
   print(f'P[Y > 2] con transformada inversa mejorada: \t{prob_optimized}')
@@ -267,12 +267,12 @@ def ex8b():
   print(f'Valor exacto: {result}')
 
   start = time()
-  result_inverse_trans = sim.success_prob(n, X_inverse_trans, is_success)
+  result_inverse_trans = sim.success_rate(n, X_inverse_trans, is_success)
   end = time()
   print(f'Transformada inversa: \t{result_inverse_trans} \t({end - start}s)')
 
   start = time()
-  result_accept_reject = sim.success_prob(n, X_accept_reject, is_success)
+  result_accept_reject = sim.success_rate(n, X_accept_reject, is_success)
   end = time()
   print(f'Aceptacón y rechazo: \t{result_accept_reject} \t({end - start}s)')
 
@@ -307,7 +307,7 @@ def ex8c():
 
 
   start = time()
-  result_accept_reject = sim.success_prob(n, X, is_success)
+  result_accept_reject = sim.success_rate(n, X, is_success)
   end = time()
   print(f'Aceptacón y rechazo: \t{result_accept_reject} \t({end - start}s)')
 
@@ -364,7 +364,7 @@ def ex10():
   X = lambda: disc.inverse_trans_pmf(1, pmf)
 
   expected_value = 2.5  # precalculado manualmente
-  expected_value_sim = sim.expected_value(1_000, X)
+  expected_value_sim = sim.mean(1_000, X)
 
   print(f'Valor esperado real: \t\t{expected_value}')
   print(f'Valor esperado simulado: \t{expected_value_sim}')

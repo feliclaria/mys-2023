@@ -16,7 +16,7 @@ def e2_is_success(X):
   return X >= 1
 
 def e2():
-  results = [sim.success_prob(n, e2_roll, e2_is_success) for n in iters]
+  results = [sim.success_rate(n, e2_roll, e2_is_success) for n in iters]
   print(f'Resultados ej. 2: {results}')
 
 
@@ -30,7 +30,7 @@ def e3_is_success(X):
   return X <= 2
 
 def e3():
-  results = [sim.success_prob(n, e3_roll, e3_is_success) for n in iters]
+  results = [sim.success_rate(n, e3_roll, e3_is_success) for n in iters]
   print(f'Resultados ej. 3: {results}')
 
 
@@ -145,7 +145,7 @@ def e6_roll():
   return N
 
 def e6():
-  results = [sim.expected_value(n, e6_roll) for n in iters]
+  results = [sim.mean(n, e6_roll) for n in iters]
   print(results)
 
 
@@ -158,12 +158,12 @@ def e7_roll():
   return N
 
 def e7a():
-  results = [sim.expected_value(n, e7_roll) for n in iters]
+  results = [sim.mean(n, e7_roll) for n in iters]
   print(results)
 
 def e7b():
   n = 1_000_000
-  results = [sim.success_prob(n, e7_roll, lambda X: X == i) for i in range(7)]
+  results = [sim.success_rate(n, e7_roll, lambda X: X == i) for i in range(7)]
   print(results)
 
 def e7():
@@ -181,7 +181,7 @@ def e8_is_success(X):
   return X > 5/6
 
 def e8():
-  results = [sim.success_prob(n, e8_roll, e8_is_success) for n in iters]
+  results = [sim.success_rate(n, e8_roll, e8_is_success) for n in iters]
   print(results)
 
 
