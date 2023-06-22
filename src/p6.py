@@ -134,13 +134,13 @@ def ex6_X():
 def ex6():
   scale = 4
 
-  pi_i, var_i, n_i = estimate.proportion(0.01, ex6_X, scale=scale)
+  pi_i, var_i, n_i = estimate.rate(0.01, ex6_X, scale=scale)
   interval_i = (
     round(pi_i - math.sqrt(var_i/n_i), 4),
     round(pi_i + math.sqrt(var_i/n_i), 4)
   )
 
-  pi_ii, var_ii, n_ii = estimate.proportion_confidence_int(1.96, 0.1, ex6_X, scale=scale)
+  pi_ii, var_ii, n_ii = estimate.rate_interval(1.96, 0.1, ex6_X, scale=scale)
   interval_ii = (
     round(pi_ii - math.sqrt(var_ii/n_ii), 4),
     round(pi_ii + math.sqrt(var_ii/n_ii), 4)

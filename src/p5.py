@@ -5,7 +5,7 @@ from tabulate import tabulate
 from time import time
 from sys import argv
 
-import poisson
+import pprocess
 import continuous as cont
 import numpy as np
 import math
@@ -327,7 +327,7 @@ def ex9():
 def ex14():
   lambd, t = 5, 1
 
-  buses, times = poisson.homogeneous(lambd, t)
+  buses, times = pprocess.homogeneous(lambd, t)
   capacities = [randint(40, 20) for _ in range(buses)]
 
   data_table = [['bus', 'capacity', 'time of arrival']]
@@ -341,22 +341,22 @@ def ex14():
 def ex15a(T):
   lambd_t = lambda t: 3 + 4 / (t+1) if 0 <= t <= 3 else 0
   lambd = 7 # at t = 0
-  return poisson.inhomogeneous(lambd, lambd_t, T)
+  return pprocess.inhomogeneous(lambd, lambd_t, T)
 
 def ex15a_improved(T):
   interv = [1, 2, 3]
   lambd = [7, 5, 13/3]
-  return poisson.inhomogeneous_improved(lambd, interv, T)
+  return pprocess.inhomogeneous_improved(lambd, interv, T)
 
 def ex15b(T):
   lambd_t = lambda t: (t - 2)**2 - 5 * t + 17 if 0 <= t <= 5 else 0
   lambd = 21 # at t = 0
-  return poisson.inhomogeneous(lambd, lambd_t, T)
+  return pprocess.inhomogeneous(lambd, lambd_t, T)
 
 def ex15b_improved(T):
   interv = [2, 4, 5]
   lambd = [21, 7, 1]
-  return poisson.inhomogeneous_improved(lambd, interv, T)
+  return pprocess.inhomogeneous_improved(lambd, interv, T)
 
 def ex15c(T):
   def lambd_t(t):
@@ -364,12 +364,12 @@ def ex15c(T):
     if 3 <= t <= 6: return 1 - t/6
     return 0
   lambd = 1/2 # at t = 3
-  return poisson.inhomogeneous(lambd, lambd_t, T)
+  return pprocess.inhomogeneous(lambd, lambd_t, T)
 
 def ex15c_improved(T):
   interv = [3, 4, 5, 6]
   lambd = [1/2, 1/2, 1/3, 2/6]
-  return poisson.inhomogeneous_improved(lambd, interv, T)
+  return pprocess.inhomogeneous_improved(lambd, interv, T)
 
 def exNone():
   pass

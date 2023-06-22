@@ -38,15 +38,20 @@ def pearson_chi2_estimate(sample, dist_estimator, support, params=0, digits=None
 def pearson_sims(sims, probs, freqs, digits=None):
   k = len(probs)
   size = np.sum(freqs)
+
   t = pearson_statistic(probs, freqs)
+
+  p = np.zeros(k, dtype=float)
+  for j in range(k):
+    p[j] = probs[j] / (1 - np.sum(probs[:j]))
+    if p[j] > 1: p[j] = 1
 
   successes = 0
   for _ in range(sims):
     freqs_sim = np.zeros(k, dtype=int)
     for j in range(k):
       n = size - np.sum(freqs_sim)
-      p = probs[j] / (1 - np.sum(probs[:j]))
-      freqs_sim[j] = binom(n, p).rvs()
+      freqs_sim[j] = binom(n, p[j]).rvs()
 
     t_sim = pearson_statistic(probs, freqs_sim)
     successes += t <= t_sim
@@ -59,8 +64,8 @@ def pearson_sims(sims, probs, freqs, digits=None):
 def pearson_sims_estimate(sims, sample, dist_estimator, support, digits=None):
   size = len(sample)
   dist = dist_estimator(sample)
-  probs_sim, freqs_sim = group_sample(sample, dist.pmf, support)
-  t = pearson_statistic(probs_sim, freqs_sim)
+  probs, freqs = group_sample(sample, dist.pmf, support)
+  t = pearson_statistic(probs, freqs)
 
   successes = 0
   for _ in range(sims):

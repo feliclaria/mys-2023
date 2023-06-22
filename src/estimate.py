@@ -19,15 +19,15 @@ def mean(
 
   return mean, S_sqr, n
 
-def mean_confidence_int(
-  z_alfa_2 : float,
+def mean_interval(
+  z_alpha_2 : float,
   L : float,
   X : Callable[..., float],
   *X_args : ...
 ) -> Tuple[float, float, int]:
-  return mean(L / (2 * z_alfa_2), X, *X_args)
+  return mean(L / (2 * z_alpha_2), X, *X_args)
 
-def proportion(
+def rate(
   tol: float,
   X: Callable[..., float],
   *X_args: ...,
@@ -35,22 +35,24 @@ def proportion(
 ) -> Tuple[float, int]:
   n = 1
   p = X(*X_args)
-  tol_sqr = (tol)**2 / scale
 
-  while n < 100 or n <= p * (1 - p) / tol_sqr:
+  tol_sqr = tol**2
+  scale_sqr = scale**2
+
+  while n < 100 or n <= scale_sqr * p * (1 - p) / tol_sqr :
     n += 1
     p += (X(*X_args) - p) / n
 
-  return scale * p, scale**2 * p * (1-p), n
+  return scale * p, scale_sqr * p * (1-p), n
 
-def proportion_confidence_int(
-  z_alfa_2 : float,
+def rate_interval(
+  z_alpha_2 : float,
   L : float,
   X : Callable[..., float],
   *X_args : ...,
   scale: float = 1
 ) -> Tuple[float, int]:
-  return proportion(L / (2 * z_alfa_2), X, *X_args, scale=scale)
+  return rate(L / (2 * z_alpha_2), X, *X_args, scale=scale)
 
 def integral_0_to_1(
   tol: float,

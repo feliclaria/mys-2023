@@ -2,7 +2,7 @@ from continuous import rt
 from tabulate import tabulate
 from sys import argv
 
-import p_value as pval
+import pvalue as pval
 import scipy.stats as sp
 import numpy as np
 import math
